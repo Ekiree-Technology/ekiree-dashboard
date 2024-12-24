@@ -5,6 +5,7 @@ description = "Course tracking software for the Whittier Scholars Program"
 authors = ["Ekiree <noah@ekiree.tech>"]
 license = "GPL-3.0 license"
 readme = "README.md"
+packages = [{include = "ekiree_dashboard"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -48,6 +49,3 @@ django_settings_module = "poetfolio.settings"
 [build-system]
 requires = ["poetry-core>=1.9.1"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
-launch.sh = "launch.sh:start"

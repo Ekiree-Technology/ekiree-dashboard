@@ -37,7 +37,7 @@
     poetryDev = mkPoetryEnv {
       projectDir = ./.;
       preferWheels = true;
-      extraPackages = ps: [ps.pip ps.django-stubs ];
+      extraPackages = ps: [ps.pip ps.django-stubs];
       overrides = overrides.withDefaults (final: prev: {
         reportlab = prev.reportlab.override {
           preferWheel = false;
@@ -74,11 +74,6 @@
           export PS1="\n(develop)\[\033[1;32m\][\[\e]0;\u@\h: \w\a\]\u@\h:\w]\$\[\033[0m\] "
         '';
       };
-
-      # Runtime Packages
-      apps.${system}.default = {
-          type = "app";
-          program = "${poetryProd}/bin/";
-        };
+      packages.${system}.default = poetryProd.dependencyEnv;
     };
 }

@@ -3,11 +3,15 @@ secrets/secrets.json
 .sops.yaml
 
 #Results of Nix Builds
+.resutl/
 .result/*
 
 # direnv outpus
 .direnv/
 .direnv/*
+
+# accidental sops build
+*.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

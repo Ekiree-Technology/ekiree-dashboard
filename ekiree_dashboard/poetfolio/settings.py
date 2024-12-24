@@ -243,7 +243,7 @@ ENV_FILE = find_dotenv()
 if ENV_FILE:
     load_dotenv(ENV_FILE)
 
-#CKeditor 5 settings
+# CKeditor 5 settings
 customColorPalette = [
     {"color": "hsl(4, 90%, 58%)", "label": "Red"},
     {"color": "hsl(340, 82%, 52%)", "label": "Pink"},
