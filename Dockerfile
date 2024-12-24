@@ -45,4 +45,4 @@ COPY --from=builder /tmp/build/result/lib/python3.12/site-packages/ekiree_dashbo
 # Run Django Server
 # add in "--log-file=/var/log/djangoApp/gunicorn.log \" when we have logging figured out
 #CMD ["/app/bin/gunicorn", "--workers=2", "--bind=0.0.0.0:8000", "poetfolio.wsgi:application"]
-CMD ["/app/bin/python", "manage.py", "runserver"]
+ENTRYPOINT ["/app/bin/python", "manage.py", "runserver"]
