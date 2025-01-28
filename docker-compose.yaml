@@ -1,22 +1,21 @@
 services: 
-  mariadb:
-    image: mariadb:latest
-    ports:
-      - "3306:3306"
-    volumes:
-      - mariadb_data:/var/lib/mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: secret_poet_pass 
-      MYSQL_DATABASE: poetfolio_dev
-      MYSQL_USER: poetfolio
-      MYSQL_PASSWORD: secret_poet_pass
+  # mariadb:
+  #   image: mariadb:latest
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - mariadb_data:/var/lib/mysql
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: secret_poet_pass 
+  #     MYSQL_DATABASE: poetfolio_dev
+  #     MYSQL_USER: poetfolio
+  #     MYSQL_PASSWORD: secret_poet_pass
 
   ekiree_dashboard:
     build: .
     image: ekiree_dashboard:dev
-    depends_on:
-      - mariadb
-    # network_mode: "host"
+    # depends_on:
+    #   - mariadb
     ports:
       - "127.0.0.1:8000:8000"
     env_file:
@@ -31,7 +30,7 @@ services:
     depends_on:
       - ekiree_dashboard
 
-volumes:
-  mariadb_data:
+# volumes:
+#   mariadb_data:
 
 # doc about setting up docker compose with nginx: https://nickjanetakis.com/blog/why-i-prefer-running-nginx-on-my-docker-host-instead-of-in-a-container
