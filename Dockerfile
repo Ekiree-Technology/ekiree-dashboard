@@ -1,11 +1,15 @@
 # syntax = docker/dockerfile:1.2
 
-# Nix builder
+# Stage 1: Nix builder
 FROM nixos/nix:latest AS builder
 
 # Copy our source and setup our working dir.
 COPY . /tmp/build
 WORKDIR /tmp/build
+
+# Set environment variables to optimize Python
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Build our Nix environment
 RUN nix \
@@ -19,18 +23,14 @@ RUN mkdir /tmp/nix-store-closure
 RUN cp -R $(nix-store -qR result/) /tmp/nix-store-closure
 
 # Compile static files
-ENV POETFOLIO_STATIC = /tmp/static
+ENV POETFOLIO_STATIC=/tmp/static
 RUN mkdir /tmp/static
-RUN /tmp/build/result/bin/python /tmp/build/result/lib/python3.12/site-packages/ekiree_dashboard/manage.py collectstatic --no-input
+# RUN /tmp/build/result/bin/python /tmp/build/result/lib/python3.12/site-packages/ekiree_dashboard/manage.py collectstatic --no-input
 
-# Final image is based on scratch. We copy a bunch of Nix dependencies
-# but they're fully self-contained so we don't need Nix anymore.
+# Stage 2: Production
 FROM alpine:latest
 
 WORKDIR /app
-
-# Expose port for web traffic
-EXPOSE 8000
 
 # Copy /nix/store
 COPY --from=builder /tmp/nix-store-closure /nix/store
@@ -42,7 +42,10 @@ COPY --from=builder /tmp/static /app/static
 # Copy Application Direcotry
 COPY --from=builder /tmp/build/result/lib/python3.12/site-packages/ekiree_dashboard .
 
+# Expose port for web traffic
+EXPOSE 8000
+EXPOSE 3306
+
 # Run Django Server
 # add in "--log-file=/var/log/djangoApp/gunicorn.log \" when we have logging figured out
-#CMD ["/app/bin/gunicorn", "--workers=2", "--bind=0.0.0.0:8000", "poetfolio.wsgi:application"]
-ENTRYPOINT ["/app/bin/python", "manage.py", "runserver"]
+ENTRYPOINT ["/app/bin/gunicorn", "--workers=2", "--bind=0.0.0.0:8000", "poetfolio.wsgi:application"]
