@@ -43,9 +43,9 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-# ALLOWED_HOSTS = ["*"]
-POETFOLIO_ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.01").split(",")
-POETFOLIO_CSRF_TRUSTED_ORIGINS = os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "https://127.0.0.1").split(",")
+ALLOWED_HOSTS = ["*"]
+# POETFOLIO_ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.01").split(",")
+# POETFOLIO_CSRF_TRUSTED_ORIGINS = os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "https://127.0.0.1").split(",")
 
 
 # Application definition

@@ -10,8 +10,9 @@ secrets/secrets.json
 .direnv/
 .direnv/*
 
-# accidental sops build
+# env files
 *.env
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
