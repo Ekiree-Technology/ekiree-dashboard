@@ -1,0 +1,9 @@
+.env
+.env*
+.venv
+.direnv/
+.direnv/*
+.git/
+.git/*
+secrets/
+secrets/*

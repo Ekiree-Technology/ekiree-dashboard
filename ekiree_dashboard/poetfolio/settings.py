@@ -44,6 +44,8 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
 
 ALLOWED_HOSTS = ["*"]
+# POETFOLIO_ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.01").split(",")
+# POETFOLIO_CSRF_TRUSTED_ORIGINS = os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "https://127.0.0.1").split(",")
 
 
 # Application definition
@@ -196,7 +198,7 @@ username = getpass.getuser()
 # Location of static files within applications in Django source code
 STATIC_URL = "/static/"
 # Location of static files the server should pull from while running
-STATIC_ROOT = os.environ.get("POETFOLIO_STATIC") or "/srv/static"
+STATIC_ROOT = os.environ.get("POETFOLIO_STATIC") or "/app/static"
 WHITENOISE_INDEX_FILE = "True"
 
 # Default Media Files
@@ -243,7 +245,7 @@ ENV_FILE = find_dotenv()
 if ENV_FILE:
     load_dotenv(ENV_FILE)
 
-#CKeditor 5 settings
+# CKeditor 5 settings
 customColorPalette = [
     {"color": "hsl(4, 90%, 58%)", "label": "Red"},
     {"color": "hsl(340, 82%, 52%)", "label": "Pink"},
