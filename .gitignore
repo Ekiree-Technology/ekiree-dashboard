@@ -3,7 +3,7 @@ secrets/secrets.json
 .sops.yaml
 
 #Results of Nix Builds
-.resutl/
+./result/
 .result/*
 
 # direnv outpus
