@@ -25,7 +25,7 @@ RUN cp -R $(nix-store -qR result/) /tmp/nix-store-closure
 # Compile static files
 ENV POETFOLIO_STATIC=/tmp/static
 RUN mkdir /tmp/static
-# RUN /tmp/build/result/bin/python /tmp/build/result/lib/python3.12/site-packages/ekiree_dashboard/manage.py collectstatic --no-input
+RUN /tmp/build/result/bin/python /tmp/build/result/lib/python3.12/site-packages/ekiree_dashboard/manage.py collectstatic --no-input
 
 # Stage 2: Production
 FROM alpine:latest
