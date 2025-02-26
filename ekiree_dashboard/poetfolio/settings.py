@@ -42,8 +42,9 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 
 
 # Application definition
@@ -196,7 +197,7 @@ username = getpass.getuser()
 # Location of static files within applications in Django source code
 STATIC_URL = "/static/"
 # Location of static files the server should pull from while running
-STATIC_ROOT = os.environ.get("POETFOLIO_STATIC") or "/srv/static"
+STATIC_ROOT = os.environ.get("POETFOLIO_STATIC") or "/app/static"
 WHITENOISE_INDEX_FILE = "True"
 
 # Default Media Files
@@ -243,7 +244,7 @@ ENV_FILE = find_dotenv()
 if ENV_FILE:
     load_dotenv(ENV_FILE)
 
-#CKeditor 5 settings
+# CKeditor 5 settings
 customColorPalette = [
     {"color": "hsl(4, 90%, 58%)", "label": "Red"},
     {"color": "hsl(340, 82%, 52%)", "label": "Pink"},
