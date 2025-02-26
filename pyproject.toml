@@ -10,7 +10,7 @@ packages = [{include = "ekiree_dashboard"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 babel = "^2.14.0"
-django = "^4.2.11"
+django = "^4.2.18"
 django-bootstrap4 = "23.1"
 django-crispy-forms = "2.1"
 django-ckeditor-5 = "^0.2.15"
