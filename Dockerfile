@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1.2
 
 # Stage 1: Nix builder
-FROM nixos/nix:latest AS builder
+FROM ghcr.io/nixos/nix AS builder
 
 # Copy our source and setup our working dir.
 COPY . /tmp/build
@@ -28,7 +28,10 @@ RUN mkdir /tmp/static
 RUN /tmp/build/result/bin/python /tmp/build/result/lib/python3.12/site-packages/ekiree_dashboard/manage.py collectstatic --no-input
 
 # Stage 2: Production
-FROM alpine:latest
+FROM docker.io/alpine:latest
+
+# Create a non-root user
+RUN adduser -D -g '' appuser
 
 WORKDIR /app
 
@@ -36,11 +39,17 @@ WORKDIR /app
 COPY --from=builder /tmp/nix-store-closure /nix/store
 COPY --from=builder /tmp/build/result /app
 
-#Copy Static files onto the instance Static
+# Copy Static files onto the instance Static
 COPY --from=builder /tmp/static /app/static
 
-# Copy Application Direcotry
+# Copy Application Directory
 COPY --from=builder /tmp/build/result/lib/python3.12/site-packages/ekiree_dashboard .
+
+# Change ownership of the app files to the non-root user
+RUN chown -R appuser:appuser /app
+
+# Set the user to the non-root user
+USER appuser
 
 # Expose port for web traffic
 EXPOSE 8000
@@ -49,3 +58,4 @@ EXPOSE 3306
 # Run Django Server
 # add in "--log-file=/var/log/djangoApp/gunicorn.log \" when we have logging figured out
 ENTRYPOINT ["/app/bin/gunicorn", "--workers=2", "--bind=0.0.0.0:8000", "poetfolio.wsgi:application"]
+
