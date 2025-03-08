@@ -71,9 +71,10 @@ jobs:
         POETFOLIO_DB_PASSWORD: devdevdev
         POETFOLIO_STATIC: /home/runner/static
         POETFOLIO_DB_HOST: 127.0.0.1
-      run: |
-        cd ekiree_dashboard
-        python ./manage.py test reports
+      uses: "flox/activate-action@v1"
+      with: 
+        command: python ./ekiree_dashboard/manage.py test reports
+
     - name: Test Vita
       env:
         POETFOLIO_DB_NAME: poetfolio_dev
@@ -81,9 +82,10 @@ jobs:
         POETFOLIO_DB_PASSWORD: devdevdev
         POETFOLIO_STATIC: /home/runner/static
         POETFOLIO_DB_HOST: 127.0.0.1
-      run: |
-        cd ekiree_dashboard
-        python ./manage.py test vita
+      uses: "flox/activate-action@v1"
+      with: 
+        command: python ./ekiree_dashboard/manage.py test vita
+
     - name: Test Siteconfig
       env:
         POETFOLIO_DB_NAME: poetfolio_dev
@@ -91,9 +93,10 @@ jobs:
         POETFOLIO_DB_PASSWORD: devdevdev
         POETFOLIO_STATIC: /home/runner/static
         POETFOLIO_DB_HOST: 127.0.0.1
-      run: |
-        cd ekiree_dashboard
-        python ./manage.py test siteconfig
+      uses: "flox/activate-action@v1"
+      with: 
+        command: python ./ekiree_dashboard/manage.py test siteconfig
+
     - name: Test ED
       env:
         POETFOLIO_DB_NAME: poetfolio_dev
@@ -101,6 +104,6 @@ jobs:
         POETFOLIO_DB_PASSWORD: devdevdev
         POETFOLIO_STATIC: /home/runner/static
         POETFOLIO_DB_HOST: 127.0.0.1
-      run: |
-        cd ekiree_dashboard
-        python ./manage.py test ed
+      uses: "flox/activate-action@v1"
+      with: 
+        command: python ./ekiree_dashboard/manage.py test ed
