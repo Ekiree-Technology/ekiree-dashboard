@@ -22,7 +22,6 @@ jobs:
           
     steps:
     - uses: actions/checkout@v4
-    - uses: DeterminateSystems/nix-installer-action@main
 
     - name: Verify MariaDB connection
       env:
