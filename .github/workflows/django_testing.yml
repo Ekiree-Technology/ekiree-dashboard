@@ -39,10 +39,7 @@ jobs:
       env:
         POETFOLIO_STATIC: /home/runner/static
       with: 
-        command: |
-          mkdir /home/runner/static
-          ./.flox/cache/poetry/virtualenvs/*/bin/python ./ekiree_dashboard/manage.py collectstatic
-
+        command: mkdir /home/runner/static && .flox/cache/poetry/virtualenvs/ekiree-dashboard-*/bin/python ./ekiree_dashboard/manage.py collectstatic
     - name: Test Migrations
       env:
         POETFOLIO_DB_HOST: 127.0.0.1
