@@ -42,7 +42,7 @@ jobs:
         command: |
           source /home/runner/work/ekiree-dashboard/ekiree-dashboard/.flox/cache/poetry/virtualenvs/*/bin/activate
           mkdir /home/runner/static
-          run python ./ekiree_dashboard/manage.py collectstatic
+          python ./ekiree_dashboard/manage.py collectstatic
 
     - name: Test Migrations
       env:
