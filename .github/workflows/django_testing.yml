@@ -60,9 +60,10 @@ jobs:
         POETFOLIO_DB_PASSWORD: devdevdev
         POETFOLIO_STATIC: /home/runner/static
         POETFOLIO_DB_HOST: 127.0.0.1
-      run: |
-        cd ekiree_dashboard
-        python ./manage.py test poetfolio
+      uses: "flox/activate-action@v1"
+      with: 
+        command: python ./ekiree_dashboard/manage.py test poetfolio
+
     - name: Test Reports
       env:
         POETFOLIO_DB_NAME: poetfolio_dev
