@@ -40,9 +40,8 @@ jobs:
         POETFOLIO_STATIC: /home/runner/static
       with: 
         command: |
-          source /home/runner/work/ekiree-dashboard/ekiree-dashboard/.flox/cache/poetry/virtualenvs/*/bin/activate
           mkdir /home/runner/static
-          python ./ekiree_dashboard/manage.py collectstatic
+          ./.flox/cache/poetry/virtualenvs/*/bin/python ./ekiree_dashboard/manage.py collectstatic
 
     - name: Test Migrations
       env:
