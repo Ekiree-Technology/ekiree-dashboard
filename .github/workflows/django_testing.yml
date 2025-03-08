@@ -36,10 +36,10 @@ jobs:
     
     - name: Set Up Environment
       uses: "flox/activate-action@v1"
-      # env:
-      #   POETFOLIO_STATIC: /home/runner/static
+      env:
+        POETFOLIO_STATIC: /home/runner/static
       with: 
-        command: mkdir /home/runner/static && python ./ekiree_dashboard/manage.py collectstatic
+        command: flox list && mkdir /home/runner/static && python ./ekiree_dashboard/manage.py collectstatic
 
     - name: Test Migrations
       env:
