@@ -10,9 +10,26 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
+import getpass
 import os
 
 from dotenv import find_dotenv, load_dotenv
+
+
+# Helper function to read secret files from Docker secrets
+def get_secret(secret_name, default=None):
+    if os.environ.get("DOCKER_SECRETS") == "True":
+        secret_path = f"/run/secrets/{secret_name}"
+        try:
+            with open(secret_path) as f:
+                return f.read().strip()
+        except IOError:
+            if default is not None:
+                return default
+            raise ValueError(f"Secret {secret_name} not found and no default provided!")
+    else:
+            return os.environ.get(secret_name, default)
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,17 +40,14 @@ TEMPLATE_DIR = os.path.join(BASE_DIR, "poetfolio", "templates")
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-import getpass
 
 username = getpass.getuser()
 etcpath = "/home/" + username + "/etc"
 
-SECRET_KEY = os.environ.get("POETFOLIO_SECRET_KEY") or (
-    "yN5i8gTkby3KiljNK82UTJ0Pd9Znek6TZqhhclZz9E3TCZaJKz"
-)
+SECRET_KEY = get_secret("POETFOLIO_SECRET_KEY", "yN5i8gTkby3KiljNK82UTJ0Pd9Znek6TZqhhclZz9E3TCZaJKz")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-if os.environ.get("POETFOLIO_PRODUCTION"):
+if get_secret("POETFOLIO_PRODUCTION"):
     DEBUG = False
 else:
     DEBUG = True
@@ -42,7 +56,7 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 
@@ -115,10 +129,10 @@ WSGI_APPLICATION = "poetfolio.wsgi.application"
 # }
 # }
 
-DB_NAME = os.environ.get("POETFOLIO_DB_NAME") or "poetfolio_dev"
-DB_USER = os.environ.get("POETFOLIO_DB_USER") or "poetfolio"
-DB_PASSWORD = os.environ.get("POETFOLIO_DB_PASSWORD") or "devdevdev"
-DB_HOST = os.environ.get("POETFOLIO_DB_HOST") or "localhost"
+DB_NAME = get_secret("POETFOLIO_DB_NAME", "poetfolio_dev")
+DB_USER = get_secret("POETFOLIO_DB_USER", "poetfolio")
+DB_PASSWORD = get_secret("POETFOLIO_DB_PASSWORD", "devdevdev")
+DB_HOST = get_secret("POETFOLIO_DB_HOST", "localhost")
 
 DATABASES = {
     "default": {
@@ -170,18 +184,18 @@ USE_TZ = True
 
 
 # Static and Media Files
-USE_S3 = os.environ.get("USE_S3") == "TRUE"
+USE_S3 = get_secret("USE_S3") == "TRUE"
 
 if USE_S3:
     MEDIA_CONFIG = {
         "BACKEND": "storages.backends.s3.S3Storage",
         "OPTIONS": {
-            "bucket_name": os.environ.get("S3_BUCKET_NAME"),
+            "bucket_name": get_secret("S3_BUCKET_NAME"),
             "default_acl": "private",
             "signature_version": "s3v4",
-            "endpoint_url": os.environ.get("S3_BUCKET_ENDPOINT"),
-            "access_key": os.environ.get("S3_ACCESS_KEY"),
-            "secret_key": os.environ.get("S3_SECRET_KEY"),
+            "endpoint_url": get_secret("S3_BUCKET_ENDPOINT"),
+            "access_key": get_secret("S3_ACCESS_KEY"),
+            "secret_key": get_secret("S3_SECRET_KEY"),
         },
     }
 else:
@@ -191,20 +205,19 @@ else:
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 # https://https://whitenoise.readthedocs.io/en/latest/django.html
-import getpass
 
 username = getpass.getuser()
 # Location of static files within applications in Django source code
 STATIC_URL = "/static/"
 # Location of static files the server should pull from while running
-STATIC_ROOT = os.environ.get("POETFOLIO_STATIC") or "/app/static"
+STATIC_ROOT = get_secret("POETFOLIO_STATIC", "/app/static")
 WHITENOISE_INDEX_FILE = "True"
 
 # Default Media Files
 # Location of media files within appllications  in Django source Code
 MEDIA_URL = "/media/"
 # Location of media files the server should pull from while running
-MEDIA_ROOT = os.environ.get("POETFOLIO_MEDIA") or ("/home/" + username + "/media")
+MEDIA_ROOT = get_secret("POETFOLIO_MEDIA", "/home/" + username + "/media")
 
 STORAGES = {
     "default": MEDIA_CONFIG,
@@ -219,10 +232,10 @@ LOGOUT_REDIRECT_URL = "/"
 
 # Emails
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = os.environ.get("POETFOLIO_EMAIL_HOST") or ""
+EMAIL_HOST = get_secret("POETFOLIO_EMAIL_HOST", "")
 EMAIL_PORT = 587
-EMAIL_HOST_USER = os.environ.get("POETFOLIO_EMAIL_USER") or ""
-EMAIL_HOST_PASSWORD = os.environ.get("POETFOLIO_EMAIL_PASSWORD") or ""
+EMAIL_HOST_USER = get_secret("POETFOLIO_EMAIL_USER", "")
+EMAIL_HOST_PASSWORD = get_secret("POETFOLIO_EMAIL_PASSWORD", "")
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = "scholars@whittier.edu"
 SECURITY_EMAIL_SENDER = DEFAULT_FROM_EMAIL
