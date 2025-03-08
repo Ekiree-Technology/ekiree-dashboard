@@ -49,8 +49,10 @@ jobs:
     - name: Test Migrations
       env:
         POETFOLIO_DB_HOST: 127.0.0.1
-      run: |
-        python ./ekiree_dashboard/manage.py migrate --skip-checks
+      uses: "flox/activate-action@v1"
+      with: 
+        command: python ./ekiree_dashboard/manage.py migrate --skip-checks
+
     - name: Test Poetfolio
       env:
         POETFOLIO_DB_NAME: poetfolio_dev
