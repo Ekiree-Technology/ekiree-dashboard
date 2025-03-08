@@ -34,10 +34,10 @@ jobs:
     - name: Install flox
       uses: flox/install-flox-action@v2
     
-    - name: Install Flake
+    - name: Activate flox
       env:
         PORT: ${{ job.services.mariadb.ports[3306] }}
-      run: flox activate
+      run: flox build
 
     - name: Set Up Environment
       env:
