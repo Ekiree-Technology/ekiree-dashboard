@@ -41,9 +41,8 @@ jobs:
       with: 
         command: |
           source /home/runner/work/ekiree-dashboard/ekiree-dashboard/.flox/cache/poetry/virtualenvs/*/bin/activate
-          poetry --version  # Check if poetry is available before running any other command
           mkdir /home/runner/static
-          poetry run python ./ekiree_dashboard/manage.py collectstatic
+          run python ./ekiree_dashboard/manage.py collectstatic
 
     - name: Test Migrations
       env:
