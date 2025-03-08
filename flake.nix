@@ -77,6 +77,8 @@
           export POETFOLIO_EMAIL_PASSWORD=$(sops  --decrypt ./secrets/secrets.json | jq -r .poetfolio_email_password)
 
           export PS1="\n(develop)\[\033[1;32m\][\[\e]0;\u@\h: \w\a\]\u@\h:\w]\$\[\033[0m\] "
+
+          eval "$(flox activate)"
         '';
       };
       packages.${system}.default = poetryProd.dependencyEnv;
