@@ -43,9 +43,11 @@ jobs:
       uses: "flox/activate-action@v1"
       env:
         POETFOLIO_STATIC: /home/runner/static
-      run: |
-        mkdir /home/runner/static
-        python ./ekiree_dashboard/manage.py collectstatic
+      with: 
+        command: |
+          mkdir /home/runner/static
+          python ./ekiree_dashboard/manage.py collectstatic
+
     - name: Test Migrations
       env:
         POETFOLIO_DB_HOST: 127.0.0.1
