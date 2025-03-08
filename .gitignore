@@ -2,6 +2,9 @@
 secrets/secrets.json
 .sops.yaml
 
+# Scripts
+package.sh
+
 #Results of Nix Builds
 ./result/
 .result/*
