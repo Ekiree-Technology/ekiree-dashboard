@@ -37,9 +37,10 @@ jobs:
     - name: Activate flox
       env:
         PORT: ${{ job.services.mariadb.ports[3306] }}
-      run: flox build
+      run:
 
     - name: Set Up Environment
+      uses: "flox/activate-action@v1"
       env:
         POETFOLIO_STATIC: /home/runner/static
       run: |
