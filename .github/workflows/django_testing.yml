@@ -33,12 +33,14 @@ jobs:
 
     - name: Install flox
       uses: flox/install-flox-action@v2
-    
-    - name: Set Up Environment
-      env:
-        POETFOLIO_STATIC: /home/runner/static
+
+    - name: Create Static Folder
       run: |
         mkdir /home/runner/static
+
+    - name: Collect Static
+      env:
+        POETFOLIO_STATIC: /home/runner/static
       uses: "flox/activate-action@v1"
       with: 
         # command: mkdir /home/runner/static && .flox/cache/poetry/virtualenvs/ekiree-dashboard-*/bin/python ./ekiree_dashboard/manage.py collectstatic
