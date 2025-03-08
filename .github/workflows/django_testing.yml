@@ -3,7 +3,6 @@ name: Test Django
 on:
   pull_request:
     branches: [ "master" ]
-  push:
 
 jobs:
   test:
@@ -40,9 +39,7 @@ jobs:
       with: 
         env:
           POETFOLIO_STATIC: /home/runner/static
-        run: |
-          mkdir /home/runner/static
-          python ./ekiree_dashboard/manage.py collectstatic
+        command: mkdir /home/runner/static && python ./ekiree_dashboard/manage.py collectstatic
 
     - name: Test Migrations
       env:
