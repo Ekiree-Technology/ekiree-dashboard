@@ -22,7 +22,6 @@ jobs:
           
     steps:
     - uses: actions/checkout@v4
-    - uses: DeterminateSystems/nix-installer-action@main
 
     - name: Verify MariaDB connection
       env:
@@ -31,26 +30,29 @@ jobs:
         while ! mysqladmin ping -h"127.0.0.1" -P"$PORT" --silent; do
           sleep 1
         done   
-    
-    - name: Install Flake
-      env:
-        PORT: ${{ job.services.mariadb.ports[3306] }}
-      run: nix build
-        
-    - name: Check Flake
-      run: nix flake check
 
-    - name: Set Up Environment
-      env:
-        POETFOLIO_STATIC: /home/runner/static
+    - name: Install flox
+      uses: flox/install-flox-action@v2
+
+    - name: Create Static Folder
       run: |
         mkdir /home/runner/static
-        ./result/bin/python ./ekiree_dashboard/manage.py collectstatic
+
+    - name: Collect Static
+      env:
+        POETFOLIO_STATIC: /home/runner/static
+      uses: "flox/activate-action@v1"
+      with: 
+        # command: mkdir /home/runner/static && .flox/cache/poetry/virtualenvs/ekiree-dashboard-*/bin/python ./ekiree_dashboard/manage.py collectstatic
+        command: python ./ekiree_dashboard/manage.py collectstatic
+
     - name: Test Migrations
       env:
         POETFOLIO_DB_HOST: 127.0.0.1
-      run: |
-        ./result/bin/python ./ekiree_dashboard/manage.py migrate --skip-checks
+      uses: "flox/activate-action@v1"
+      with: 
+        command: python ./ekiree_dashboard/manage.py migrate --skip-checks
+
     - name: Test Poetfolio
       env:
         POETFOLIO_DB_NAME: poetfolio_dev
@@ -58,9 +60,10 @@ jobs:
         POETFOLIO_DB_PASSWORD: devdevdev
         POETFOLIO_STATIC: /home/runner/static
         POETFOLIO_DB_HOST: 127.0.0.1
-      run: |
-        cd ekiree_dashboard
-        ../result/bin/python ./manage.py test poetfolio
+      uses: "flox/activate-action@v1"
+      with: 
+        command: python ./ekiree_dashboard/manage.py test poetfolio
+
     - name: Test Reports
       env:
         POETFOLIO_DB_NAME: poetfolio_dev
@@ -68,9 +71,10 @@ jobs:
         POETFOLIO_DB_PASSWORD: devdevdev
         POETFOLIO_STATIC: /home/runner/static
         POETFOLIO_DB_HOST: 127.0.0.1
-      run: |
-        cd ekiree_dashboard
-        ../result/bin/python ./manage.py test reports
+      uses: "flox/activate-action@v1"
+      with: 
+        command: python ./ekiree_dashboard/manage.py test reports
+
     - name: Test Vita
       env:
         POETFOLIO_DB_NAME: poetfolio_dev
@@ -78,9 +82,10 @@ jobs:
         POETFOLIO_DB_PASSWORD: devdevdev
         POETFOLIO_STATIC: /home/runner/static
         POETFOLIO_DB_HOST: 127.0.0.1
-      run: |
-        cd ekiree_dashboard
-        ../result/bin/python ./manage.py test vita
+      uses: "flox/activate-action@v1"
+      with: 
+        command: python ./ekiree_dashboard/manage.py test vita
+
     - name: Test Siteconfig
       env:
         POETFOLIO_DB_NAME: poetfolio_dev
@@ -88,9 +93,10 @@ jobs:
         POETFOLIO_DB_PASSWORD: devdevdev
         POETFOLIO_STATIC: /home/runner/static
         POETFOLIO_DB_HOST: 127.0.0.1
-      run: |
-        cd ekiree_dashboard
-        ../result/bin/python ./manage.py test siteconfig
+      uses: "flox/activate-action@v1"
+      with: 
+        command: python ./ekiree_dashboard/manage.py test siteconfig
+
     - name: Test ED
       env:
         POETFOLIO_DB_NAME: poetfolio_dev
@@ -98,6 +104,6 @@ jobs:
         POETFOLIO_DB_PASSWORD: devdevdev
         POETFOLIO_STATIC: /home/runner/static
         POETFOLIO_DB_HOST: 127.0.0.1
-      run: |
-        cd ekiree_dashboard
-        ../result/bin/python ./manage.py test ed
+      uses: "flox/activate-action@v1"
+      with: 
+        command: python ./ekiree_dashboard/manage.py test ed

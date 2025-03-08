@@ -136,7 +136,7 @@ DB_HOST = get_secret("POETFOLIO_DB_HOST", "localhost")
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",
+        "ENGINE": "mysql.connector.django",
         "NAME": DB_NAME,
         "USER": DB_USER,
         "PASSWORD": DB_PASSWORD,
