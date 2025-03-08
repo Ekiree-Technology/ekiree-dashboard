@@ -40,7 +40,7 @@ jobs:
         POETFOLIO_STATIC: /home/runner/static
       with: 
         command: |
-          poetry --version  # Check if poetry is available before running any other command
+          flox activate -- poetry --version  # Check if poetry is available before running any other command
           mkdir /home/runner/static
           poetry run python ./ekiree_dashboard/manage.py collectstatic
 
