@@ -49,15 +49,20 @@
       # Development shell
       devShell.${system} = mkShell {
         nativeBuildInputs = [
-          poetry
           jq
           sops
           pkg-config
-          poetryDev
+          libmysqlclient
+          mariadb
+          # poetryDev
         ];
 
         # Command run upon shell start
         shellHook = ''
+          export MYSQLCLIENT_CFLAGS="-I${libmysqlclient}/include"
+          export MYSQLCLIENT_LDFLAGS="-L${libmysqlclient}/lib -lmysqlclient"
+
+          export PKG_CONFIG_PATH=${mariadb}/lib/pkgconfig
           export POETFOLIO_SECRET_KEY=$(sops  --decrypt ./secrets/secrets.json | jq -r .poetfolio_secret_key)
           export POETFOLIO_PRODUCTION=$(sops  --decrypt ./secrets/secrets.json | jq -r .poetfolio_production)
           export POETFOLIO_DB_NAME=$(sops  --decrypt ./secrets/secrets.json | jq -r .poetfolio_db_name)
@@ -72,6 +77,8 @@
           export POETFOLIO_EMAIL_PASSWORD=$(sops  --decrypt ./secrets/secrets.json | jq -r .poetfolio_email_password)
 
           export PS1="\n(develop)\[\033[1;32m\][\[\e]0;\u@\h: \w\a\]\u@\h:\w]\$\[\033[0m\] "
+
+          eval "$(flox activate)"
         '';
       };
       packages.${system}.default = poetryProd.dependencyEnv;

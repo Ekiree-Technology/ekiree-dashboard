@@ -99,3 +99,4 @@ jobs:
       run: |
         cd ekiree_dashboard
         ../result/bin/python ./manage.py test ed
+
