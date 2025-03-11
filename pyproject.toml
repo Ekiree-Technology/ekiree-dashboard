@@ -33,6 +33,8 @@ authlib = "^1.3.2"
 python-dotenv = "^1.0.1"
 requests = "^2.32.3"
 mysqlclient = "^2.2.6"
+# mysql-connector-python = "^9.2.0"
+# django-mysql = "^4.16.0"
 
 [tool.pyright]
 include = ["./"]
