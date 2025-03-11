@@ -5,6 +5,13 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    env:
+      POETFOLIO_DB_NAME: poetfolio_dev
+      POETFOLIO_DB_USER: root
+      POETFOLIO_DB_PASSWORD: devdevdev
+      POETFOLIO_STATIC: /home/runner/static
+      POETFOLIO_DB_HOST: 127.0.0.1
     
     services:
       mariadb:
@@ -18,13 +25,6 @@ jobs:
           MARIADB_ROOT_PASSWORD: devdevdev
         options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
 
-    env:
-      POETFOLIO_DB_NAME: poetfolio_dev
-      POETFOLIO_DB_USER: root
-      POETFOLIO_DB_PASSWORD: devdevdev
-      POETFOLIO_STATIC: /home/runner/static
-      POETFOLIO_DB_HOST: 127.0.0.1
-          
     steps:
     - uses: actions/checkout@v4
 
@@ -33,7 +33,13 @@ jobs:
     - name: Install flake and check
       run: nix build && nix flake check
 
-    # Verify Maria DB is ready to testing
+    # Set up Environment
+    - name: Set Up Environment
+      run: |
+        mkdir /home/runner/static
+        result/bin/python ekiree_dashboard/manage.py collectstatic
+
+    # Verify Maria DB is ready for testing
     - name: Verify MariaDB connection
       env:
         PORT: ${{ job.services.mariadb.ports[3306] }}
@@ -42,11 +48,6 @@ jobs:
           sleep 1
         done   
     
-    # Set up Environment
-    - name: Set Up Environment
-      run: |
-        mkdir /home/runner/static
-        result/bin/python ekiree_dashboard/manage.py collectstatic
 
     # Test Migrations
     - name: Test Migrations
