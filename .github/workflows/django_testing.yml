@@ -58,7 +58,7 @@ jobs:
         POETFOLIO_DB_PASSWORD: devdevdev
         POETFOLIO_STATIC: /home/runner/static
         POETFOLIO_DB_HOST: 127.0.0.1
-      run: ./result/bin/python ./manage.py test poetfolio
+      run: ./result/bin/python ekiree_dashboard/manage.py test poetfolio
     - name: Test Reports
       env:
         POETFOLIO_DB_NAME: poetfolio_dev
@@ -99,4 +99,3 @@ jobs:
       run: |
         cd ekiree_dashboard
         ../result/bin/python ./manage.py test ed
-
