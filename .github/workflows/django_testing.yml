@@ -18,8 +18,7 @@ jobs:
           MARIADB_PASSWORD: devdevdev
           MARIADB_DATABASE: poetfolio_dev
           MARIADB_ROOT_PASSWORD: devdevdev
-        options: --health-cmd="mysqladmin ping -h127.0.0.1 --silent" --health-interval=10s --health-timeout=5s --health-retries=3
-
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=
     env:
       POETFOLIO_DB_NAME: poetfolio_dev
       POETFOLIO_DB_USER: root
@@ -29,7 +28,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
     # Install nix and build the flake
     - uses: DeterminateSystems/nix-installer-action@main
     - name: Install Flake and check
@@ -37,10 +35,11 @@ jobs:
         nix build
         nix flake check
 
-    # Verify MariaDB is ready (using service health check)
     - name: Verify MariaDB connection
+      env:
+        PORT: ${{ job.services.mariadb.ports[3306] }}
       run: |
-        while ! mysqladmin ping -h"127.0.0.1" -P3306 --silent; do
+        while ! mysqladmin ping -h"127.0.0.1" -P"$PORT" --silent; do
           sleep 1
         done
 
