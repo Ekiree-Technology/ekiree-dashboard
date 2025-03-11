@@ -17,11 +17,23 @@ jobs:
           MARIADB_DATABASE: poetfolio_dev
           MARIADB_ROOT_PASSWORD: devdevdev
         options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    env:
+      POETFOLIO_DB_NAME: poetfolio_dev
+      POETFOLIO_DB_USER: root
+      POETFOLIO_DB_PASSWORD: devdevdev
+      POETFOLIO_STATIC: /home/runner/static
+      POETFOLIO_DB_HOST: 127.0.0.1
           
     steps:
     - uses: actions/checkout@v4
-    - uses: DeterminateSystems/nix-installer-action@main
 
+    # Install nix and build the flake
+    - uses: DeterminateSystems/nix-installer-action@main
+    - name: Install flake and check
+      run: nix build && nix flake check
+
+    # Verify Maria DB is ready to testing
     - name: Verify MariaDB connection
       env:
         PORT: ${{ job.services.mariadb.ports[3306] }}
@@ -30,20 +42,14 @@ jobs:
           sleep 1
         done   
     
-    - name: Install Flake
-      env:
-        PORT: ${{ job.services.mariadb.ports[3306] }}
-      run: nix build
-        
-    - name: Check Flake
-      run: nix flake check
-
+    # Set up Environment
     - name: Set Up Environment
       env:
-        POETFOLIO_STATIC: /home/runner/static
       run: |
         mkdir /home/runner/static
         ./result/bin/python ./ekiree_dashboard/manage.py collectstatic
+
+    # Test Migrations
     - name: Test Migrations
       env:
         POETFOLIO_DB_HOST: 127.0.0.1
