@@ -44,7 +44,6 @@ jobs:
     
     # Set up Environment
     - name: Set Up Environment
-      env:
       run: |
         mkdir /home/runner/static
         ./result/bin/python ./ekiree_dashboard/manage.py collectstatic
