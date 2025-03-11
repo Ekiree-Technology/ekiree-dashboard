@@ -1,5 +1,3 @@
-name: Test Django
-
 on:
   pull_request:
     branches: [ "master" ]
@@ -18,22 +16,11 @@ jobs:
           MARIADB_PASSWORD: devdevdev
           MARIADB_DATABASE: poetfolio_dev
           MARIADB_ROOT_PASSWORD: devdevdev
-        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=
-    env:
-      POETFOLIO_DB_NAME: poetfolio_dev
-      POETFOLIO_DB_USER: root
-      POETFOLIO_DB_PASSWORD: devdevdev
-      POETFOLIO_STATIC: /home/runner/static
-      POETFOLIO_DB_HOST: 127.0.0.1
-
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
+          
     steps:
     - uses: actions/checkout@v4
-    # Install nix and build the flake
     - uses: DeterminateSystems/nix-installer-action@main
-    - name: Install Flake and check
-      run: |
-        nix build
-        nix flake check
 
     - name: Verify MariaDB connection
       env:
@@ -41,28 +28,68 @@ jobs:
       run: |
         while ! mysqladmin ping -h"127.0.0.1" -P"$PORT" --silent; do
           sleep 1
-        done
+        done   
+    
+    - name: Install Flake
+      env:
+        PORT: ${{ job.services.mariadb.ports[3306] }}
+      run: nix build
+        
+    - name: Check Flake
+      run: nix flake check
 
-    # Set up the environment
     - name: Set Up Environment
+      env:
+        POETFOLIO_STATIC: /home/runner/static
       run: |
         mkdir /home/runner/static
-        ./result/bin/python ./ekiree_dashboard/manage.py collectstatic --noinput
-
-    # Test Migrations (this can be parallelized later if desired)
+        ./result/bin/python ./ekiree_dashboard/manage.py collectstatic
     - name: Test Migrations
-      run: ./result/bin/python ekiree_dashboard/manage.py migrate --skip-checks
+      env:
+        POETFOLIO_DB_HOST: 127.0.0.1
+      run: result/bin/python ekiree_dashboard/manage.py migrate --skip-checks
 
-    # Run all tests in parallel (or sequentially if dependencies exist)
-    - name: Run Tests
-      run: |
-        ./result/bin/python ekiree_dashboard/manage.py test poetfolio &
-        ./result/bin/python ekiree_dashboard/manage.py test reports &
-        ./result/bin/python ekiree_dashboard/manage.py test vita &
-        ./result/bin/python ekiree_dashboard/manage.py test siteconfig &
-        ./result/bin/python ekiree_dashboard/manage.py test ed
+    - name: Test Poetfolio
+      env:
+        POETFOLIO_DB_NAME: poetfolio_dev
+        POETFOLIO_DB_USER: root
+        POETFOLIO_DB_PASSWORD: devdevdev
+        POETFOLIO_STATIC: /home/runner/static
+        POETFOLIO_DB_HOST: 127.0.0.1
+      run: result/bin/python ekiree_dashboard/manage.py test poetfolio
 
-    # Wait for all background tests to finish
-    - name: Wait for Tests
-      run: wait
+    - name: Test Reports
+      env:
+        POETFOLIO_DB_NAME: poetfolio_dev
+        POETFOLIO_DB_USER: root
+        POETFOLIO_DB_PASSWORD: devdevdev
+        POETFOLIO_STATIC: /home/runner/static
+        POETFOLIO_DB_HOST: 127.0.0.1
+      run: result/bin/python ekiree_dashboard/manage.py test reports
 
+    - name: Test Vita
+      env:
+        POETFOLIO_DB_NAME: poetfolio_dev
+        POETFOLIO_DB_USER: root
+        POETFOLIO_DB_PASSWORD: devdevdev
+        POETFOLIO_STATIC: /home/runner/static
+        POETFOLIO_DB_HOST: 127.0.0.1
+      run: result/bin/python ekiree_dashboard/manage.py test vita
+
+    - name: Test Siteconfig
+      env:
+        POETFOLIO_DB_NAME: poetfolio_dev
+        POETFOLIO_DB_USER: root
+        POETFOLIO_DB_PASSWORD: devdevdev
+        POETFOLIO_STATIC: /home/runner/static
+        POETFOLIO_DB_HOST: 127.0.0.1
+      run: result/bin/python ekiree_dashboard/manage.py test siteconfig
+
+    - name: Test ED
+      env:
+        POETFOLIO_DB_NAME: poetfolio_dev
+        POETFOLIO_DB_USER: root
+        POETFOLIO_DB_PASSWORD: devdevdev
+        POETFOLIO_STATIC: /home/runner/static
+        POETFOLIO_DB_HOST: 127.0.0.1
+      run: result/bin/python ekiree_dashboard/manage.py test ed
