@@ -1,6 +1,9 @@
+---
+name: Django Testing
+
 on:
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
   test:
@@ -12,7 +15,7 @@ jobs:
       POETFOLIO_DB_PASSWORD: devdevdev
       POETFOLIO_STATIC: /home/runner/static
       POETFOLIO_DB_HOST: 127.0.0.1
-    
+
     services:
       mariadb:
         image: mariadb:latest
@@ -26,45 +29,45 @@ jobs:
         options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    # Install nix and build the flake
-    - uses: DeterminateSystems/nix-installer-action@main
-    - name: Install flake and check
-      run: nix build && nix flake check
+      # Install nix and build the flake
+      - uses: DeterminateSystems/nix-installer-action@main
+      - name: Install flake and check
+        run: nix build && nix flake check
 
-    # Set up Environment
-    - name: Set Up Environment
-      run: |
-        mkdir /home/runner/static
-        result/bin/python ekiree_dashboard/manage.py collectstatic
+      # Set up Environment
+      - name: Set Up Environment
+        run: |
+          mkdir /home/runner/static
+          result/bin/python ekiree_dashboard/manage.py collectstatic
 
-    # Verify Maria DB is ready for testing
-    - name: Verify MariaDB connection
-      env:
-        PORT: ${{ job.services.mariadb.ports[3306] }}
-      run: |
-        while ! mysqladmin ping -h"127.0.0.1" -P"$PORT" --silent; do
-          sleep 1
-        done   
-    
+      # Verify Maria DB is ready for testing
+      - name: Verify MariaDB connection
+        env:
+          PORT: ${{ job.services.mariadb.ports[3306] }}
+        run: |
+          while ! mysqladmin ping -h"127.0.0.1" -P"$PORT" --silent; do
+            sleep 1
+          done
 
-    # Test Migrations
-    - name: Test Migrations
-      run: result/bin/python ekiree_dashboard/manage.py migrate --skip-checks
 
-    # Test Djanog Applications
-    - name: Test Poetfolio
-      run: result/bin/python ekiree_dashboard/manage.py test poetfolio
+      # Test Migrations
+      - name: Test Migrations
+        run: result/bin/python ekiree_dashboard/manage.py migrate --skip-checks
 
-    - name: Test Reports
-      run: result/bin/python ekiree_dashboard/manage.py test reports
+      # Test Djanog Applications
+      - name: Test Poetfolio
+        run: result/bin/python ekiree_dashboard/manage.py test poetfolio
 
-    - name: Test Vita
-      run: result/bin/python ekiree_dashboard/manage.py test vita
+      - name: Test Reports
+        run: result/bin/python ekiree_dashboard/manage.py test reports
 
-    - name: Test Siteconfig
-      run: result/bin/python ekiree_dashboard/manage.py test siteconfig
+      - name: Test Vita
+        run: result/bin/python ekiree_dashboard/manage.py test vita
 
-    - name: Test ED
-      run: result/bin/python ekiree_dashboard/manage.py test ed
+      - name: Test Siteconfig
+        run: result/bin/python ekiree_dashboard/manage.py test siteconfig
+
+      - name: Test ED
+        run: result/bin/python ekiree_dashboard/manage.py test ed
