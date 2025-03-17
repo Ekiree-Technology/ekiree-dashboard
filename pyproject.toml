@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ekiree_dashboard"
-version = "000.0.1"
+version = "000.0.2"
 description = "Course tracking software for the Whittier Scholars Program"
 authors = ["Ekiree <noah@ekiree.tech>"]
 license = "GPL-3.0 license"
