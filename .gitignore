@@ -1,6 +1,5 @@
 # Secrets
-secrets/secrets.json
-.sops.yaml
+.env
 
 # Scripts
 build_and_push.sh
