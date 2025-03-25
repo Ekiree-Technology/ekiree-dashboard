@@ -1,9 +1,8 @@
 # Secrets
-secrets/secrets.json
-.sops.yaml
+.env
 
 # Scripts
-package.sh
+build_and_push.sh
 
 #Results of Nix Builds
 ./result/

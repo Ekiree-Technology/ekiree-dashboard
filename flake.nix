@@ -1,11 +1,9 @@
 {
   description = "Dashboard Nix Package";
-
   inputs = {
     # Nix Packages
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   };
-
   outputs = {
     nixpkgs,
     poetry2nix,
@@ -13,7 +11,6 @@
   }: let
     system = "x86_64-linux";
     pkgs = import nixpkgs {inherit system;};
-
     # Setting up nix2poetry
     inherit
       (poetry2nix.lib.mkPoetry2Nix {inherit pkgs;})
@@ -21,7 +18,6 @@
       mkPoetryEnv
       overrides
       ;
-
     # Configure production python application with poetry2nix
     poetryProd = mkPoetryApplication {
       projectDir = ./.;
@@ -32,7 +28,6 @@
         };
       });
     };
-
     # Configure development python environment with poetry2nix
     poetryDev = mkPoetryEnv {
       projectDir = ./.;
@@ -50,30 +45,32 @@
       devShell.${system} = mkShell {
         nativeBuildInputs = [
           jq
-          sops
           pkg-config
           poetryDev
         ];
-
         # Command run upon shell start
         shellHook = ''
           export MYSQLCLIENT_CFLAGS="-I${libmysqlclient}/include"
           export MYSQLCLIENT_LDFLAGS="-L${libmysqlclient}/lib -lmysqlclient"
-
           export PKG_CONFIG_PATH=${mariadb}/lib/pkgconfig
-          export POETFOLIO_SECRET_KEY=$(sops  --decrypt ./secrets/secrets.json | jq -r .poetfolio_secret_key)
-          export POETFOLIO_PRODUCTION=$(sops  --decrypt ./secrets/secrets.json | jq -r .poetfolio_production)
-          export POETFOLIO_DB_NAME=$(sops  --decrypt ./secrets/secrets.json | jq -r .poetfolio_db_name)
-          export POETFOLIO_DB_USER=$(sops  --decrypt ./secrets/secrets.json | jq -r .poetfolio_db_user)
-          export POETFOLIO_DB_PASSWORD=$(sops  --decrypt ./secrets/secrets.json | jq -r .poetfolio_db_password)
-
-          export POETFOLIO_DB_HOST=$(sops  --decrypt ./secrets/secrets.json | jq -r .poetfolio_db_host)
-          export POETFOLIO_STATIC=$(sops  --decrypt ./secrets/secrets.json | jq -r .poetfolio_static)
-          export POETFOLIO_MEDIA=$(sops  --decrypt ./secrets/secrets.json | jq -r .poetfolio_media)
-          export POETFOLIO_EMAIL_HOST=$(sops  --decrypt ./secrets/secrets.json | jq -r .poetfolio_email_host)
-          export POETFOLIO_EMAIL_USER=$(sops  --decrypt ./secrets/secrets.json | jq -r .poetfolio_email_user)
-          export POETFOLIO_EMAIL_PASSWORD=$(sops  --decrypt ./secrets/secrets.json | jq -r .poetfolio_email_password)
-
+          
+          # Load environment variables from .env file
+          if [ -f .env ]; then
+            echo "Loading environment from .env file"
+            while IFS='=' read -r key value || [ -n "$key" ]; do
+              # Skip comments and empty lines
+              if [[ $key != \#* ]] && [[ -n $key ]]; then
+                # Remove leading/trailing whitespace and quotes from value
+                value=$(echo "$value" | sed -e 's/^[[:space:]]*//;s/[[:space:]]*$//;s/^"//;s/"$//')
+                export "$key"="$value"
+                echo "Loaded: $key"
+              fi
+            done < .env
+          else
+            echo "No .env file found. Please create one with required environment variables."
+            exit 1
+          fi
+          
           export PS1="\n(develop)\[\033[1;32m\][\[\e]0;\u@\h: \w\a\]\u@\h:\w]\$\[\033[0m\] "
         '';
       };
