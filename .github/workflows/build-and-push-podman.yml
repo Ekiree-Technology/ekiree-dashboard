@@ -1,12 +1,8 @@
 name: Build and Push Container with Podman
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version in major.minor.patch format (e.g., 1.2.3)'
-        required: true
-        type: string
+  release:
+    types: [created]
 
 jobs:
   build-and-push:
@@ -21,9 +17,17 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
+      - name: Get release version
+        id: get_version
+        run: |
+          # Extract version from GitHub release tag (remove 'v' prefix if present)
+          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Release version: $VERSION"
+
       - name: Validate version format
         run: |
-          if ! echo "${{ github.event.inputs.version }}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+          if ! echo "${{ env.VERSION }}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
             echo "Error: Invalid version format. Use 'major.minor.patch' format (e.g., 1.2.3)."
             exit 1
           fi
@@ -36,20 +40,20 @@ jobs:
           echo "Current version: $CURRENT_VERSION"
 
       - name: Create branch for version update
-        if: env.CURRENT_VERSION != github.event.inputs.version
+        if: env.CURRENT_VERSION != env.VERSION
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          BRANCH_NAME="version-update-${{ github.event.inputs.version }}"
+          BRANCH_NAME="release-${{ env.VERSION }}"
           git checkout -b $BRANCH_NAME
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
       - name: Update version in pyproject.toml
-        if: env.CURRENT_VERSION != github.event.inputs.version
+        if: env.CURRENT_VERSION != env.VERSION
         run: |
-          echo "Updating version to ${{ github.event.inputs.version }} in pyproject.toml..."
-          sed -i -E "s/^version = \".*\"/version = \"${{ github.event.inputs.version }}\"/" pyproject.toml
-          echo "Version updated to ${{ github.event.inputs.version }} in pyproject.toml."
+          echo "Updating version to ${{ env.VERSION }} in pyproject.toml..."
+          sed -i -E "s/^version = \".*\"/version = \"${{ env.VERSION }}\"/" pyproject.toml
+          echo "Version updated to ${{ env.VERSION }} in pyproject.toml."
 
       - name: Install Podman
         run: |
@@ -63,33 +67,35 @@ jobs:
 
       - name: Build container image with Podman
         run: |
-          podman build -t ekiree-dashboard:${{ github.event.inputs.version }} .
+          podman build -t ekiree-dashboard:${{ env.VERSION }} .
 
       - name: Tag and push container image with Podman
         run: |
-          podman tag ekiree-dashboard:${{ github.event.inputs.version }} ghcr.io/ekiree-technology/ekiree-dashboard:${{ github.event.inputs.version }}
-          podman push ghcr.io/ekiree-technology/ekiree-dashboard:${{ github.event.inputs.version }}
+          podman tag ekiree-dashboard:${{ env.VERSION }} ghcr.io/ekiree-technology/ekiree-dashboard:${{ env.VERSION }}
+          podman push ghcr.io/ekiree-technology/ekiree-dashboard:${{ env.VERSION }}
 
       - name: Commit version changes
-        if: env.CURRENT_VERSION != github.event.inputs.version
+        if: env.CURRENT_VERSION != env.VERSION
         run: |
           git add pyproject.toml
-          git commit -m "Bump version to ${{ github.event.inputs.version }}"
+          git commit -m "release-${{ env.VERSION }}"
           git push --set-upstream origin ${{ env.BRANCH_NAME }}
 
-      - name: Create Pull Request
-        if: env.CURRENT_VERSION != github.event.inputs.version
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: "Bump version to ${{ github.event.inputs.version }}"
-          body: |
-            This PR updates the version in pyproject.toml to ${{ github.event.inputs.version }}.
-            
-            The container image has been built and pushed to GitHub Container Registry.
-            
-            Image: ghcr.io/ekiree-technology/ekiree-dashboard:${{ github.event.inputs.version }}
-            
-            This PR was automatically created by the version update workflow.
-          branch: ${{ env.BRANCH_NAME }}
-          base: master
+      - name: Create Pull Request using GitHub CLI
+        if: env.CURRENT_VERSION != env.VERSION
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Install GitHub CLI
+          type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+          && sudo apt update \
+          && sudo apt install gh -y
+          
+          # Create PR
+          gh pr create --title "Bump version to ${{ env.VERSION }}" \
+                       --body "This PR updates the version in pyproject.toml to ${{ env.VERSION }}. The container image has been built and pushed to GitHub Container Registry: ghcr.io/ekiree-technology/ekiree-dashboard:${{ env.VERSION }}" \
+                       --base master \
+                       --head ${{ env.BRANCH_NAME }}
