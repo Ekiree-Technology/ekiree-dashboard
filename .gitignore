@@ -3,7 +3,7 @@ secrets/secrets.json
 .sops.yaml
 
 # Scripts
-package.sh
+build_and_push.sh
 
 #Results of Nix Builds
 ./result/
