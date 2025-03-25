@@ -7,11 +7,10 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    environment: prod
+    # Removed environment restriction
     permissions:
       contents: write
       packages: write
-      pull-requests: write
     
     steps:
       - name: Check out code
@@ -74,28 +73,10 @@ jobs:
           podman tag ekiree-dashboard:${{ env.VERSION }} ghcr.io/ekiree-technology/ekiree-dashboard:${{ env.VERSION }}
           podman push ghcr.io/ekiree-technology/ekiree-dashboard:${{ env.VERSION }}
 
-      - name: Commit version changes
+      - name: Commit and push version changes
         if: env.CURRENT_VERSION != env.VERSION
         run: |
           git add pyproject.toml
-          git commit -m "release-${{ env.VERSION }}"
+          git commit -m "Bump version to ${{ env.VERSION }}"
           git push --set-upstream origin ${{ env.BRANCH_NAME }}
-
-      - name: Create Pull Request using GitHub CLI
-        if: env.CURRENT_VERSION != env.VERSION
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Install GitHub CLI
-          type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
-          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
-          && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
-          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-          && sudo apt update \
-          && sudo apt install gh -y
-          
-          # Create PR
-          gh pr create --title "Bump version to ${{ env.VERSION }}" \
-                       --body "This PR updates the version in pyproject.toml to ${{ env.VERSION }}. The container image has been built and pushed to GitHub Container Registry: ghcr.io/ekiree-technology/ekiree-dashboard:${{ env.VERSION }}" \
-                       --base master \
-                       --head ${{ env.BRANCH_NAME }}
+          echo "::notice::Version updated to ${{ env.VERSION }} in branch ${{ env.BRANCH_NAME }}. Please create a PR manually to merge these changes."
