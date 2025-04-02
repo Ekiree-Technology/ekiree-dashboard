@@ -47,7 +47,7 @@ class OffCampusReflectForm(forms.ModelForm):
     reflection = forms.CharField(widget=CKEditor5Widget())
     class Meta:
         model = OffCampusExperience
-        fields = ('experince_type',
+        fields = ('experience_type',
                   'completed',
                 'reflection',
                  )
