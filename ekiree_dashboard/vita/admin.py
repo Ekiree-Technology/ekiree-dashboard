@@ -62,13 +62,13 @@ class OffCampusExperienceAdmin(admin.ModelAdmin):
     
     list_display = (
             'student',
-            'experince_type',
+            'experience_type',
             'approved',
             'completed',
             )
 
     list_filter = (
-            'experince_type',
+            'experience_type',
             'approved',
             'completed',
             )

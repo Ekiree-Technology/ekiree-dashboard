@@ -102,7 +102,7 @@ class OffCampusExperience(models.Model):
         Student,
         on_delete=models.CASCADE,
     )
-    experince_type = models.CharField(
+    experience_type = models.CharField(
         max_length=3, choices=EXPERIENCE_TYPE, default="UD"
     )
     approved = models.CharField(max_length=3, choices=BOOLEAN_ANSWER, default="No")

@@ -373,7 +373,7 @@ def OffCampus(request, username=None):
 
                 exp = OffCampusExperience.objects.get(student=student)
                 notesForm = OffCampusCouncilNotesForm(instance=exp)
-                expType = exp.get_experince_type_display()
+                expType = exp.get_experience_type_display()
                 print("The user  is: ", user)
 
                 return render(
