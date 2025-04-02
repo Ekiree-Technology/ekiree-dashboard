@@ -57,5 +57,5 @@ EXPOSE 3306
 
 # Run Django Server
 # add in "--log-file=/var/log/djangoApp/gunicorn.log \" when we have logging figured out
-ENTRYPOINT ["/app/bin/gunicorn", "--workers=2", "--bind=0.0.0.0:8000", "poetfolio.wsgi:application"]
+ENTRYPOINT ["/app/entrypoint.prod.sh"]
 
