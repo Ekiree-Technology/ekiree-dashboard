@@ -2,7 +2,9 @@
 
 import datetime
 from django.db import migrations, models
-from django.utils.timezone import utc
+from datetime import timezone 
+
+# Then use timezone.utc instead of just utc utc
 
 
 class Migration(migrations.Migration):
@@ -15,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='home_page',
             name='publish_date',
-            field=models.DateTimeField(default=datetime.datetime(2019, 10, 8, 21, 52, 23, 72636, tzinfo=utc), verbose_name='Published'),
+            field=models.DateTimeField(default=datetime.datetime(2019, 10, 8, 21, 52, 23, 72636, tzinfo=timezone.utc), verbose_name='Published'),
             preserve_default=False,
         ),
     ]

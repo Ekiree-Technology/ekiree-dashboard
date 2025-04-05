@@ -46,6 +46,7 @@
         nativeBuildInputs = [
           jq
           pkg-config
+          poetry
           poetryDev
         ];
         # Command run upon shell start

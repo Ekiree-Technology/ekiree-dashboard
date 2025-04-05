@@ -108,7 +108,7 @@ class CourseListTest(TestCase):
         self.assertIn('usercourses', response.context)
         usercourses = all_courses(test_student)
         # https://stackoverflow.com/a/49129560/1205608
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             usercourses,
             response.context['usercourses'],
             transform=lambda x: x
@@ -168,7 +168,7 @@ class CourseListTest(TestCase):
 
         studentlist = all_students()
         self.assertIn('students', response.context)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             studentlist,
             response.context['students'],
             transform=lambda x: x,
@@ -228,7 +228,7 @@ class CourseListTest(TestCase):
 
         studentlist = all_students()
         self.assertIn('students', response.context)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             studentlist,
             response.context['students'],
             transform=lambda x: x,
@@ -586,7 +586,7 @@ class AddCourseTest(TestCase):
         self.assertIn('hero', response.context)
         #self.assertEqual(response.context['hero'], hero)
         self.assertIn('usercourses', response.context)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             test_student_courses,
             response.context['usercourses'],
             transform=lambda x: x,
