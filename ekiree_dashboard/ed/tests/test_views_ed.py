@@ -218,7 +218,7 @@ class EDViewTest(TestCase):
 
         self.assertIn('usercourses', response.context)
         # https://stackoverflow.com/a/49129560/1205608
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             all_courses(student),
             response.context['usercourses'],
             transform=lambda x: x
@@ -226,7 +226,7 @@ class EDViewTest(TestCase):
 
         self.assertIn('divcourses', response.context)
         # https://stackoverflow.com/a/49129560/1205608
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             courses_by_division(student),
             response.context['divcourses'],
             transform=lambda x: x
@@ -235,7 +235,7 @@ class EDViewTest(TestCase):
 
         self.assertIn('major1', response.context)
         # https://stackoverflow.com/a/49129560/1205608
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             major_courses(student, 1),
             response.context['major1'],
             transform=lambda x: x
@@ -243,12 +243,12 @@ class EDViewTest(TestCase):
 
         self.assertIn('major2', response.context)
         # empty Querysets can be checked with assertEqual
-        # but not with assertQuerysetEqual that includes a transform
+        # but not with assertQuerySetEqual that includes a transform
         self.assertEqual(major_courses(student, 2), response.context['major2'])
 
         self.assertIn('minor1', response.context)
         # https://stackoverflow.com/a/49129560/1205608
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             minor_courses(student, 1),
             response.context['minor1'],
             transform=lambda x: x
@@ -256,12 +256,12 @@ class EDViewTest(TestCase):
 
         self.assertIn('minor2', response.context)
         # empty Querysets can be checked with assertEqual
-        # but not with assertQuerysetEqual that includes a transform
+        # but not with assertQuerySetEqual that includes a transform
         self.assertEqual(minor_courses(student, 2), response.context['minor2'])
 
         self.assertIn('wspcourses', response.context)
         # https://stackoverflow.com/a/49129560/1205608
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             WSPcourses(student),
             response.context['wspcourses'],
             transform=lambda x: x
@@ -269,7 +269,7 @@ class EDViewTest(TestCase):
 
 
         self.assertIn('support', response.context)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             supporting_courses(student),
             response.context['support'],
             transform=lambda x: x
@@ -277,7 +277,7 @@ class EDViewTest(TestCase):
 
         self.assertIn('edgoals', response.context)
         # https://stackoverflow.com/a/49129560/1205608
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             EducationalGoal.objects.filter(student=student),
             response.context['edgoals'],
             transform=lambda x: x
