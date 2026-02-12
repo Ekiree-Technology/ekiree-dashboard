@@ -30,13 +30,14 @@ jobs:
       - name: Start container
         run: |
           docker run -d --name dashboard \
-            --network host \
+            -p 8000:8000 \
+            --add-host=host.docker.internal:host-gateway \
             -e DOCKER_SECRETS=False \
             -e POETFOLIO_SECRET_KEY=ci-test-key-not-for-production \
             -e POETFOLIO_DB_NAME=poetfolio_dev \
             -e POETFOLIO_DB_USER=root \
             -e POETFOLIO_DB_PASSWORD=devdevdev \
-            -e POETFOLIO_DB_HOST=127.0.0.1 \
+            -e POETFOLIO_DB_HOST=host.docker.internal \
             -e POETFOLIO_STATIC=/app/static \
             -e ALLOWED_HOSTS='*' \
             ekiree-dashboard:test
