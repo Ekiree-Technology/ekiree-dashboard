@@ -29,6 +29,15 @@ ENV POETFOLIO_STATIC=/tmp/static
 RUN mkdir /tmp/static \
     && /tmp/build/result/bin/python /tmp/build/result/lib/python${PYTHON_VERSION}/site-packages/ekiree_dashboard/manage.py collectstatic --no-input
 
+# Create minimal /etc/passwd and /etc/group for the scratch stage.
+# Python's getpass.getuser() needs /etc/passwd to resolve the UID to a username.
+# Without it, Django's settings.py crashes on import.
+RUN mkdir -p /tmp/etc \
+    && echo 'root:x:0:0:root:/root:/bin/sh' > /tmp/etc/passwd \
+    && echo 'appuser:x:1000:1000:appuser:/app:/bin/sh' >> /tmp/etc/passwd \
+    && echo 'root:x:0:' > /tmp/etc/group \
+    && echo 'appuser:x:1000:' >> /tmp/etc/group
+
 # Stage 2: Production
 FROM scratch
 
@@ -39,6 +48,10 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
+
+# Provide /etc/passwd and /etc/group so Python can resolve UID 1000
+COPY --from=builder /tmp/etc/passwd /etc/passwd
+COPY --from=builder /tmp/etc/group /etc/group
 
 # Copy /nix/store
 COPY --from=builder /tmp/nix-store-closure /nix/store
