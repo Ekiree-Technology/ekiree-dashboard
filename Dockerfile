@@ -29,10 +29,13 @@ ENV POETFOLIO_STATIC=/tmp/static
 RUN mkdir /tmp/static \
     && /tmp/build/result/bin/python /tmp/build/result/lib/python${PYTHON_VERSION}/site-packages/ekiree_dashboard/manage.py collectstatic --no-input
 
-# Create minimal /etc/passwd and /etc/group for the scratch stage.
-# Python's getpass.getuser() needs /etc/passwd to resolve the UID to a username.
-# Without it, Django's settings.py crashes on import.
-RUN mkdir -p /tmp/etc \
+# Prepare files needed by the scratch stage:
+# - /etc/passwd and /etc/group: Python's getpass.getuser() needs these to resolve
+#   UID 1000 to a username. Without them, Django's settings.py crashes on import.
+# - /tmp: gunicorn workers need a writable temp directory for heartbeat files.
+#   Python's tempfile module also requires it.
+RUN mkdir -p /tmp/etc /tmp/scratch-tmp /tmp/scratch-var-tmp \
+    && chmod 1777 /tmp/scratch-tmp /tmp/scratch-var-tmp \
     && echo 'root:x:0:0:root:/root:/bin/sh' > /tmp/etc/passwd \
     && echo 'appuser:x:1000:1000:appuser:/app:/bin/sh' >> /tmp/etc/passwd \
     && echo 'root:x:0:' > /tmp/etc/group \
@@ -52,6 +55,10 @@ WORKDIR /app
 # Provide /etc/passwd and /etc/group so Python can resolve UID 1000
 COPY --from=builder /tmp/etc/passwd /etc/passwd
 COPY --from=builder /tmp/etc/group /etc/group
+
+# Provide writable temp directories for gunicorn worker heartbeat files and Python tempfile
+COPY --from=builder --chown=1000:1000 /tmp/scratch-tmp /tmp
+COPY --from=builder --chown=1000:1000 /tmp/scratch-var-tmp /var/tmp
 
 # Copy /nix/store
 COPY --from=builder /tmp/nix-store-closure /nix/store
