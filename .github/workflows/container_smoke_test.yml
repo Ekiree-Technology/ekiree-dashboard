@@ -1,0 +1,79 @@
+---
+name: Container Smoke Test
+
+on:
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  container-smoke-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:latest
+        ports:
+          - '3306:3306'
+        env:
+          MARIADB_USER: poetfolio
+          MARIADB_PASSWORD: devdevdev
+          MARIADB_DATABASE: poetfolio_dev
+          MARIADB_ROOT_PASSWORD: devdevdev
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman
+
+      - name: Build container image
+        run: podman build -t ekiree-dashboard:test .
+
+      - name: Start container
+        run: |
+          podman run -d --name dashboard \
+            --network host \
+            -e DOCKER_SECRETS=False \
+            -e POETFOLIO_SECRET_KEY=ci-test-key-not-for-production \
+            -e POETFOLIO_DB_NAME=poetfolio_dev \
+            -e POETFOLIO_DB_USER=root \
+            -e POETFOLIO_DB_PASSWORD=devdevdev \
+            -e POETFOLIO_DB_HOST=127.0.0.1 \
+            -e POETFOLIO_STATIC=/app/static \
+            -e POETFOLIO_PRODUCTION=true \
+            -e POETFOLIO_ALLOWED_HOSTS='*' \
+            ekiree-dashboard:test
+
+      - name: Wait for container to be ready
+        run: |
+          echo "Waiting for gunicorn to start..."
+          for i in $(seq 1 60); do
+            if curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/ | grep -qE '^(200|301|302)$'; then
+              echo "Dashboard is responding."
+              exit 0
+            fi
+            echo "Attempt $i/60 - not ready yet..."
+            sleep 5
+          done
+          echo "Container failed to respond in time."
+          podman logs dashboard
+          exit 1
+
+      - name: Verify HTTP response
+        run: |
+          STATUS=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/)
+          echo "HTTP status: $STATUS"
+          if echo "$STATUS" | grep -qE '^(200|301|302)$'; then
+            echo "Smoke test passed."
+          else
+            echo "Unexpected status code."
+            podman logs dashboard
+            exit 1
+          fi
+
+      - name: Dump container logs on failure
+        if: failure()
+        run: podman logs dashboard
