@@ -1,6 +1,6 @@
 #!/app/bin/python
+import os
 import subprocess
-import sys
 import time
 
 import MySQLdb
@@ -16,8 +16,6 @@ def wait_for_database():
     manage.py check loads the full Django URL resolver which triggers
     module-level database queries that fail before migrations have run.
     """
-    import os
-
     host = os.environ.get("POETFOLIO_DB_HOST", "localhost")
     user = os.environ.get("POETFOLIO_DB_USER", "poetfolio")
     password = os.environ.get("POETFOLIO_DB_PASSWORD", "")
@@ -54,11 +52,7 @@ def run_migrations():
 
 
 def start_gunicorn():
-    sys.exit(
-        subprocess.call(
-            [GUNICORN, "--bind", "0.0.0.0:8000", "--workers", "3", "poetfolio.wsgi:application"]
-        )
-    )
+    os.execv(GUNICORN, [GUNICORN, "--bind", "0.0.0.0:8000", "--workers", "3", "poetfolio.wsgi:application"])
 
 
 if __name__ == "__main__":
