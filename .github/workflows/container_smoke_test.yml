@@ -9,18 +9,6 @@ jobs:
   container-smoke-test:
     runs-on: ubuntu-latest
 
-    services:
-      mariadb:
-        image: mariadb:latest
-        ports:
-          - '3306:3306'
-        env:
-          MARIADB_USER: poetfolio
-          MARIADB_PASSWORD: devdevdev
-          MARIADB_DATABASE: poetfolio_dev
-          MARIADB_ROOT_PASSWORD: devdevdev
-        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
-
     steps:
       - uses: actions/checkout@v4
 
@@ -32,21 +20,50 @@ jobs:
       - name: Build container image
         run: podman build -t ekiree-dashboard:test .
 
-      - name: Start container
+      - name: Create Podman network
+        run: podman network create smoke-test
+
+      - name: Start MariaDB
+        run: |
+          podman run -d --name mariadb \
+            --network smoke-test \
+            -e MARIADB_USER=poetfolio \
+            -e MARIADB_PASSWORD=devdevdev \
+            -e MARIADB_DATABASE=poetfolio_dev \
+            -e MARIADB_ROOT_PASSWORD=devdevdev \
+            mariadb:latest
+
+      - name: Wait for MariaDB to be ready
+        run: |
+          echo "Waiting for MariaDB..."
+          for i in $(seq 1 30); do
+            if podman exec mariadb healthcheck.sh --connect --innodb_initialized 2>/dev/null; then
+              echo "MariaDB is ready."
+              exit 0
+            fi
+            echo "Attempt $i/30 - not ready yet..."
+            sleep 5
+          done
+          echo "MariaDB failed to start in time."
+          podman logs mariadb
+          exit 1
+
+      - name: Start dashboard container
         run: |
           podman run -d --name dashboard \
-            --network host \
+            --network smoke-test \
+            -p 8000:8000 \
             -e DOCKER_SECRETS=False \
             -e POETFOLIO_SECRET_KEY=ci-test-key-not-for-production \
             -e POETFOLIO_DB_NAME=poetfolio_dev \
             -e POETFOLIO_DB_USER=root \
             -e POETFOLIO_DB_PASSWORD=devdevdev \
-            -e POETFOLIO_DB_HOST=127.0.0.1 \
+            -e POETFOLIO_DB_HOST=mariadb \
             -e POETFOLIO_STATIC=/app/static \
             -e ALLOWED_HOSTS='*' \
             ekiree-dashboard:test
 
-      - name: Wait for container to be ready
+      - name: Wait for dashboard to be ready
         run: |
           echo "Waiting for gunicorn to start..."
           for i in $(seq 1 60); do
@@ -75,4 +92,8 @@ jobs:
 
       - name: Dump container logs on failure
         if: failure()
-        run: podman logs dashboard
+        run: |
+          echo "=== Dashboard logs ==="
+          podman logs dashboard
+          echo "=== MariaDB logs ==="
+          podman logs mariadb
