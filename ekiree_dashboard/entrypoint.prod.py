@@ -50,7 +50,7 @@ def wait_for_database():
 
 
 def run_migrations():
-    subprocess.run([PYTHON, "manage.py", "migrate", "--noinput"], check=True)
+    subprocess.run([PYTHON, "manage.py", "migrate", "--noinput", "--skip-checks"], check=True)
 
 
 def start_gunicorn():
