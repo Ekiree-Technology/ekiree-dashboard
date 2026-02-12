@@ -77,3 +77,42 @@ class IndexTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'base.html')
+
+
+class LogoutTest(TestCase):
+    def setUp(self):
+        Home_page.objects.create(image=None, text='hello!')
+        Menu_item.objects.create(
+            title='a thing',
+            subtitle='stuff about the thing',
+            link='/',
+            thumbnail=None,
+            order='1',
+        )
+        student_group = Group.objects.create(name='Student')
+        self.user = User.objects.create_user(
+            username='test_student',
+            password='thisisastudent',
+        )
+        self.user.groups.add(student_group)
+
+    def test_get_logout_does_not_log_out(self):
+        self.client.force_login(self.user)
+        self.client.get(reverse('logout'))
+        response = self.client.get(reverse(Index))
+        self.assertEqual(response.wsgi_request.user, self.user)
+
+    def test_post_logout_logs_out_and_redirects(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse('logout'), {'next': '/'})
+        self.assertRedirects(response, '/')
+        response = self.client.get(reverse(Index))
+        self.assertTrue(response.wsgi_request.user.is_anonymous)
+
+    def test_authenticated_user_sees_logout_post_form(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse(Index))
+        content = response.content.decode()
+        self.assertIn('method="post"', content)
+        self.assertIn('action="%s"' % reverse('logout'), content)
+        self.assertNotIn('href="%s' % reverse('logout'), content)
