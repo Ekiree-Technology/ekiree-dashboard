@@ -69,4 +69,4 @@ jobs:
 
       # Type checking
       - name: Type Check
-        run: npx pyright ekiree_dashboard/
+        run: npx pyright --pythonpath result/bin/python ekiree_dashboard/
