@@ -1,0 +1,123 @@
+---
+name: Container Smoke Test
+
+on:
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  container-smoke-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:latest
+        ports:
+          - '3306:3306'
+        env:
+          MARIADB_USER: poetfolio
+          MARIADB_PASSWORD: devdevdev
+          MARIADB_DATABASE: poetfolio_dev
+          MARIADB_ROOT_PASSWORD: devdevdev
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build container image
+        run: docker build -t ekiree-dashboard:test .
+
+      - name: Start container
+        run: |
+          docker run -d --name dashboard \
+            -p 8000:8000 \
+            --add-host=host.docker.internal:host-gateway \
+            -e DOCKER_SECRETS=False \
+            -e POETFOLIO_SECRET_KEY=ci-test-key-not-for-production \
+            -e POETFOLIO_DB_NAME=poetfolio_dev \
+            -e POETFOLIO_DB_USER=root \
+            -e POETFOLIO_DB_PASSWORD=devdevdev \
+            -e POETFOLIO_DB_HOST=host.docker.internal \
+            -e POETFOLIO_STATIC=/app/static \
+            -e ALLOWED_HOSTS='*' \
+            ekiree-dashboard:test
+
+      - name: Wait for dashboard to be ready
+        run: |
+          echo "Waiting for gunicorn to start..."
+          for i in $(seq 1 60); do
+            STATUS=$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 5 --max-time 10 http://127.0.0.1:8000/) || true
+            echo "Attempt $i/60 - HTTP status: $STATUS"
+            if [ "$STATUS" -ge 200 ] 2>/dev/null && [ "$STATUS" -lt 600 ] 2>/dev/null; then
+              echo "Dashboard is responding (HTTP $STATUS)."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Container failed to respond in time."
+          echo "=== Container status ==="
+          docker ps -a
+          echo "=== Container logs ==="
+          docker logs --tail 100 dashboard
+          echo "=== Verbose curl ==="
+          curl -v --connect-timeout 5 --max-time 10 http://127.0.0.1:8000/ 2>&1 || true
+          exit 1
+
+      - name: Verify HTTP response
+        run: |
+          STATUS=$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 5 --max-time 10 http://127.0.0.1:8000/)
+          echo "HTTP status: $STATUS"
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 600 ]; then
+            echo "Smoke test passed (HTTP $STATUS)."
+          else
+            echo "Unexpected status: $STATUS"
+            docker logs dashboard
+            exit 1
+          fi
+
+      - name: Verify static files are served
+        run: |
+          STATUS=$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 5 --max-time 10 http://127.0.0.1:8000/static/ed/style.css)
+          echo "Static file HTTP status: $STATUS"
+          if [ "$STATUS" -eq 200 ]; then
+            echo "Static files are being served."
+          else
+            echo "Static file not served (expected 200, got $STATUS)."
+            exit 1
+          fi
+
+      - name: Verify graceful shutdown
+        run: |
+          docker stop dashboard
+          EXIT_CODE=$(docker inspect dashboard --format='{{.State.ExitCode}}')
+          echo "Container exit code: $EXIT_CODE"
+          if [ "$EXIT_CODE" -eq 0 ]; then
+            echo "Graceful shutdown succeeded."
+          else
+            echo "Container exited with code $EXIT_CODE."
+            docker logs --tail 20 dashboard
+            exit 1
+          fi
+
+      - name: Debug - check container status
+        if: failure()
+        run: |
+          echo "=== Container status ==="
+          docker ps -a
+          echo "=== Container logs ==="
+          docker logs dashboard
+          echo "=== Try running manage.py check directly ==="
+          docker exec dashboard /app/bin/python manage.py check --database default 2>&1 || true
+          echo "=== Test connectivity from inside the container ==="
+          docker exec dashboard /app/bin/python -c "
+          import urllib.request
+          try:
+              r = urllib.request.urlopen('http://127.0.0.1:8000/', timeout=10)
+              print(f'Internal check: HTTP {r.status}')
+          except Exception as e:
+              print(f'Internal check failed: {e}')
+          " 2>&1 || true
+
+      - name: Dump container logs on failure
+        if: failure()
+        run: docker logs dashboard
