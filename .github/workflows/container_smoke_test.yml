@@ -41,6 +41,16 @@ jobs:
             -e ALLOWED_HOSTS='*' \
             ekiree-dashboard:test
 
+      - name: Debug - check container status
+        run: |
+          sleep 10
+          echo "=== Container status ==="
+          docker ps -a
+          echo "=== Container logs so far ==="
+          docker logs dashboard
+          echo "=== Try running manage.py check directly ==="
+          docker exec dashboard /app/bin/python manage.py check --database default 2>&1 || true
+
       - name: Wait for dashboard to be ready
         run: |
           echo "Waiting for gunicorn to start..."
