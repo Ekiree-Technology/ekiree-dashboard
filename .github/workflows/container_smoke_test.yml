@@ -43,8 +43,7 @@ jobs:
             -e POETFOLIO_DB_PASSWORD=devdevdev \
             -e POETFOLIO_DB_HOST=127.0.0.1 \
             -e POETFOLIO_STATIC=/app/static \
-            -e POETFOLIO_PRODUCTION=true \
-            -e POETFOLIO_ALLOWED_HOSTS='*' \
+            -e ALLOWED_HOSTS='*' \
             ekiree-dashboard:test
 
       - name: Wait for container to be ready
