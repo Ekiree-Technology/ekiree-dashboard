@@ -56,9 +56,8 @@ class AdvisorFilter(InputFilter):
     parameter_name = 'advisor_name'
 
     def queryset(self, request, queryset):
-        if self.value() is not None:
-            advisor_name = self.value()
-
+        advisor_name = self.value()
+        if advisor_name is not None:
             return queryset.filter(advisor_email__icontains=advisor_name[0:7])
 
 class SponsorFilter(InputFilter):
@@ -66,7 +65,6 @@ class SponsorFilter(InputFilter):
     parameter_name = 'sponsor_name'
 
     def queryset(self, request, queryset):
-        if self.value() is not None:
-            sponsor_name = self.value()
-
+        sponsor_name = self.value()
+        if sponsor_name is not None:
             return queryset.filter(sponsor_email__icontains=sponsor_name[0:7])

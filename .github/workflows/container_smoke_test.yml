@@ -11,7 +11,7 @@ jobs:
 
     services:
       mariadb:
-        image: mariadb:latest
+        image: mariadb:11
         ports:
           - '3306:3306'
         env:
@@ -24,8 +24,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build container image
-        run: docker build -t ekiree-dashboard:test .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: ekiree-dashboard:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Start container
         run: |
@@ -45,9 +54,9 @@ jobs:
       - name: Wait for dashboard to be ready
         run: |
           echo "Waiting for gunicorn to start..."
-          for i in $(seq 1 60); do
+          for i in $(seq 1 6); do
             STATUS=$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 5 --max-time 10 http://127.0.0.1:8000/) || true
-            echo "Attempt $i/60 - HTTP status: $STATUS"
+            echo "Attempt $i/6 - HTTP status: $STATUS"
             if [ "$STATUS" -ge 200 ] 2>/dev/null && [ "$STATUS" -lt 600 ] 2>/dev/null; then
               echo "Dashboard is responding (HTTP $STATUS)."
               exit 0

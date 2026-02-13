@@ -33,14 +33,24 @@ authlib = "^1.6.6"
 python-dotenv = "^1.0.1"
 requests = "^2.32.4"
 mysqlclient = "^2.2.6"
+coverage = "~7.6"
 # mysql-connector-python = "^9.2.0"
 # django-mysql = "^4.16.0"
 
 [tool.pyright]
 include = ["./"]
+exclude = ["**/migrations/"]
 
-pythonVersion = "^3.11"
+pythonVersion = "3.11"
 pythonPlatform = "Linux"
+typeCheckingMode = "basic"
+
+# Disabled until django-stubs is available in CI (see TODO).
+# Without django-stubs, pyright doesn't understand Django's ORM metaclass
+# magic (.objects, field descriptors, ForeignKey dereferencing, etc.).
+reportAttributeAccessIssue = false
+reportArgumentType = false
+reportOperatorIssue = false
 
 [tool.mypy]
 plugins = ["mypy_django_plugin.main"]

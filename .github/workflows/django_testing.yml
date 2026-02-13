@@ -18,7 +18,7 @@ jobs:
 
     services:
       mariadb:
-        image: mariadb:latest
+        image: mariadb:11
         ports:
           - '3306:3306'
         env:
@@ -33,16 +33,11 @@ jobs:
 
       # Install nix and build the flake
       - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Install flake and check
         run: nix build && nix flake check
 
-      # Set up Environment
-      - name: Set Up Environment
-        run: |
-          mkdir /home/runner/static
-          result/bin/python ekiree_dashboard/manage.py collectstatic
-
-      # Verify Maria DB is ready for testing
+      # Verify MariaDB is ready
       - name: Verify MariaDB connection
         env:
           PORT: ${{ job.services.mariadb.ports[3306] }}
@@ -51,23 +46,27 @@ jobs:
             sleep 1
           done
 
+      # Set up Environment
+      - name: Set Up Environment
+        run: |
+          mkdir /home/runner/static
+          result/bin/python ekiree_dashboard/manage.py collectstatic
 
       # Test Migrations
       - name: Test Migrations
         run: result/bin/python ekiree_dashboard/manage.py migrate --skip-checks
 
-      # Test Djanog Applications
-      - name: Test Poetfolio
-        run: result/bin/python ekiree_dashboard/manage.py test poetfolio
+      # Run all tests with coverage
+      - name: Run Tests
+        run: >
+          result/bin/python -m coverage run
+          --source=ekiree_dashboard
+          ekiree_dashboard/manage.py test
+          --parallel
 
-      - name: Test Reports
-        run: result/bin/python ekiree_dashboard/manage.py test reports
+      - name: Coverage Report
+        run: result/bin/python -m coverage report
 
-      - name: Test Vita
-        run: result/bin/python ekiree_dashboard/manage.py test vita
-
-      - name: Test Siteconfig
-        run: result/bin/python ekiree_dashboard/manage.py test siteconfig
-
-      - name: Test ED
-        run: result/bin/python ekiree_dashboard/manage.py test ed
+      # Type checking
+      - name: Type Check
+        run: npx pyright --pythonpath result/bin/python ekiree_dashboard/
