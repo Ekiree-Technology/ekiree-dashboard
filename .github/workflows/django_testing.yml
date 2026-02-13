@@ -34,8 +34,14 @@ jobs:
       # Install nix and build the flake
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
-      - name: Install flake and check
-        run: nix build && nix flake check
+      - name: Build Production Environment
+        run: nix build
+
+      - name: Build Dev Environment
+        run: nix build .#dev -o result-dev
+
+      - name: Flake Check
+        run: nix flake check
 
       # Verify MariaDB is ready
       - name: Verify MariaDB connection
@@ -52,16 +58,16 @@ jobs:
           mkdir /home/runner/static
           result/bin/python ekiree_dashboard/manage.py collectstatic
 
-      # Run all tests with coverage
+      # Run all tests with coverage (uses dev env for coverage + django-stubs)
       - name: Run Tests
         run: >
-          result/bin/python -m coverage run
+          result-dev/bin/python -m coverage run
           --source=ekiree_dashboard
           ekiree_dashboard/manage.py test ekiree_dashboard -v 2
 
       - name: Coverage Report
-        run: result/bin/python -m coverage report
+        run: result-dev/bin/python -m coverage report
 
       # Type checking
       - name: Type Check
-        run: npx pyright --pythonpath result/bin/python ekiree_dashboard/
+        run: npx pyright --pythonpath result-dev/bin/python ekiree_dashboard/
