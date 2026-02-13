@@ -1,0 +1,72 @@
+---
+name: Release Build
+
+on:
+  push:
+    branches: ["master"]
+    paths: ["pyproject.toml"]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Read version from pyproject.toml
+        id: version
+        run: |
+          VERSION=$(grep -oP '^version = "\K[^"]+' pyproject.toml)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION"
+
+      - name: Check if release already exists
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if gh release view "v${VERSION}" > /dev/null 2>&1; then
+            echo "Release v${VERSION} already exists — skipping build."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Release v${VERSION} does not exist — proceeding with build."
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Podman
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman
+          podman --version
+
+      - name: Log in to GHCR
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build container image
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          podman build -t ekiree-dashboard:${{ steps.version.outputs.version }} .
+
+      - name: Tag and push to GHCR
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          podman tag "ekiree-dashboard:${VERSION}" "ghcr.io/ekiree-technology/ekiree-dashboard:${VERSION}"
+          podman push "ghcr.io/ekiree-technology/ekiree-dashboard:${VERSION}"
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          gh release create "v${VERSION}" --generate-notes --title "v${VERSION}"
