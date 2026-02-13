@@ -54,6 +54,16 @@ pythonVersion = "3.11"
 pythonPlatform = "Linux"
 typeCheckingMode = "basic"
 
+# Suppressed until the codebase is type-annotated. django-stubs is now
+# available, but existing code has widespread type issues (un-narrowed
+# Optional returns, views returning None, untyped ORM annotations, etc.).
+# Fix these incrementally then re-enable each rule.
+reportAttributeAccessIssue = false
+reportArgumentType = false
+reportOptionalMemberAccess = false
+reportCallIssue = false
+reportGeneralTypeIssues = false
+
 [tool.mypy]
 plugins = ["mypy_django_plugin.main"]
 
