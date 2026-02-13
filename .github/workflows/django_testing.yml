@@ -61,7 +61,7 @@ jobs:
         run: >
           result/bin/python -m coverage run
           --source=ekiree_dashboard
-          ekiree_dashboard/manage.py test
+          ekiree_dashboard/manage.py test ekiree_dashboard
           --parallel
 
       - name: Coverage Report
