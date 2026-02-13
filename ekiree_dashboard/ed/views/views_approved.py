@@ -6,14 +6,9 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from ed.tools import ApprovedCourse, EDCourse, all_courses, approved_courses
 from poetfolio.tools import all_students, is_council, is_student, is_WSPstaff
-from siteconfig.models import HeroImage
+from siteconfig.models import get_hero_image
 
 logger = logging.getLogger(__name__)
-
-try:
-    hero = HeroImage.objects.get(app="ed")
-except HeroImage.DoesNotExist:
-    hero = None
 
 
 @login_required
@@ -54,7 +49,7 @@ def ApprovedCourseList(request, username=None):
                     "usercourses": approvedcourses,
                     "removedcourses": removedcourses,
                     "newcourses": newcourses,
-                    "hero": hero,
+                    "hero": get_hero_image("ed"),
                 },
             )
         elif is_WSPstaff(user) or is_council(user):
@@ -68,7 +63,7 @@ def ApprovedCourseList(request, username=None):
                         "pagename": "Select Student",
                         "students": studentlist,
                         "target": "ApprovedCourses",
-                        "hero": hero,
+                        "hero": get_hero_image("ed"),
                     },
                 )
             else:
@@ -92,7 +87,7 @@ def ApprovedCourseList(request, username=None):
                         "usercourses": approvedcourses,
                         "removedcourses": removedcourses,
                         "newcourses": newcourses,
-                        "hero": hero,
+                        "hero": get_hero_image("ed"),
                     },
                 )
 
@@ -130,7 +125,7 @@ def ReplaceAppCourse(request, appcourse_id=None):
                     "user": user,
                     "appcourse": appcourse,
                     "newcourses": newcourses,
-                    "hero": hero,
+                    "hero": get_hero_image("ed"),
                 },
             )
         else:

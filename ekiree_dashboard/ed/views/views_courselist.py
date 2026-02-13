@@ -18,15 +18,10 @@ from ed.tools import (
     semester_courses,
 )
 from poetfolio.tools import all_students, is_council, is_student, is_WSPstaff
-from siteconfig.models import HeroImage
+from siteconfig.models import get_hero_image
 from vita.models import Student
 
 logger = logging.getLogger(__name__)
-
-try:
-    hero = HeroImage.objects.get(app="ed")
-except HeroImage.DoesNotExist:
-    hero = None
 
 # Displays all courses that the user has
 # Defaults to Index if no other return is hit
@@ -64,7 +59,7 @@ def SharedList(request, shared_url=None):
                 "major2": major2,
                 "minor1": minor1,
                 "minor2": minor2,
-                "hero": hero,
+                "hero": get_hero_image("ed"),
             },
         )
 
@@ -123,7 +118,7 @@ def CourseList(request, username=None):
                     "minor1": minor1,
                     "minor2": minor2,
                     "shared_url": shared_url,
-                    "hero": hero,
+                    "hero": get_hero_image("ed"),
                 },
             )
         elif is_WSPstaff(user) or is_council(user):
@@ -136,7 +131,7 @@ def CourseList(request, username=None):
                         "pagename": "Select Student",
                         "students": studentlist,
                         "target": "CourseList",
-                        "hero": hero,
+                        "hero": get_hero_image("ed"),
                     },
                 )
             else:
@@ -166,7 +161,7 @@ def CourseList(request, username=None):
                         "minor1": minor1,
                         "minor2": minor2,
                         "shared_url": shared_url,
-                        "hero": hero,
+                        "hero": get_hero_image("ed"),
                     },
                 )
         else:
@@ -200,7 +195,7 @@ def EditEDCourse(request, edcourse_id=None):
                     "years": years,
                     "user": user,
                     "edcourse": edcourse,
-                    "hero": hero,
+                    "hero": get_hero_image("ed"),
                 },
             )
         else:
@@ -312,7 +307,7 @@ def AddCourse(request):
                 "years": years,
                 "user": user,
                 "usercourses": studentcourses,
-                "hero": hero,
+                "hero": get_hero_image("ed"),
             },
         )
 

@@ -10,12 +10,7 @@ GUNICORN = "/app/bin/gunicorn"
 
 
 def wait_for_database():
-    """Wait for the database to accept connections.
-
-    Uses a raw MySQLdb connection instead of manage.py check, because
-    manage.py check loads the full Django URL resolver which triggers
-    module-level database queries that fail before migrations have run.
-    """
+    """Wait for the database to accept connections."""
     host = os.environ.get("POETFOLIO_DB_HOST", "localhost")
     user = os.environ.get("POETFOLIO_DB_USER", "poetfolio")
     password = os.environ.get("POETFOLIO_DB_PASSWORD", "")
@@ -48,7 +43,7 @@ def wait_for_database():
 
 
 def run_migrations():
-    subprocess.run([PYTHON, "manage.py", "migrate", "--noinput", "--skip-checks"], check=True)
+    subprocess.run([PYTHON, "manage.py", "migrate", "--noinput"], check=True)
 
 
 def start_gunicorn():

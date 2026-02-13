@@ -54,7 +54,7 @@ jobs:
 
       # Test Migrations
       - name: Test Migrations
-        run: result/bin/python ekiree_dashboard/manage.py migrate --skip-checks
+        run: result/bin/python ekiree_dashboard/manage.py migrate
 
       # Run all tests with coverage
       - name: Run Tests

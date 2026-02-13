@@ -9,17 +9,10 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from ed.tools import all_courses
 from poetfolio.tools import is_student, is_council, is_WSPstaff, all_students
-from siteconfig.models import HeroImage
-from vita.forms import StudentNarrativeForm, StudentInfoForm, Student, Application, ApplicationForm, ApplicationFeedbackForm, OffCampusExperience, OffCampusReflectForm, OffCampusCouncilNotesForm 
+from siteconfig.models import get_hero_image
+from vita.forms import StudentNarrativeForm, StudentInfoForm, Student, Application, ApplicationForm, ApplicationFeedbackForm, OffCampusExperience, OffCampusReflectForm, OffCampusCouncilNotesForm
 
 logger = logging.getLogger(__name__)
-
-try:
-    hero = HeroImage.objects.get(app="vita")
-# except HeroImage.DoesNotExist:
-#    hero = HeroImage.objects.get(app='default')
-except:
-    hero = None
 
 
 @login_required
@@ -41,7 +34,7 @@ def Index(request):
         "vitabase.html",
         {
             "pagename": "Vita",
-            "hero": hero,
+            "hero": get_hero_image("vita"),
         },
     )
 
@@ -57,7 +50,7 @@ def Narrative(request):
                 {
                     "pagename": request.user.username + "'s Proposal",
                     "narrative": student.narrative,
-                    "hero": hero,
+                    "hero": get_hero_image("vita"),
                 },
             )
         else:
@@ -87,7 +80,7 @@ def EditNarrative(request):
             "pagename": "Edit Narrative",
             "form": form,
             "narrative": student.narrative,
-            "hero": hero,
+            "hero": get_hero_image("vita"),
         },
     )
 
@@ -111,7 +104,7 @@ def Info(request, username=None):
                     "pagename": "Your Info",
                     "user": user,
                     "form": form,
-                    "hero": hero,
+                    "hero": get_hero_image("vita"),
                 },
             )
         elif request.method == "POST":
@@ -127,7 +120,7 @@ def Info(request, username=None):
                     {
                         "pagename": "Your Info",
                         "form": form,
-                        "hero": hero,
+                        "hero": get_hero_image("vita"),
                     },
                 )
         else:
@@ -143,7 +136,7 @@ def Info(request, username=None):
                         "pagename": "Student Info",
                         "target": "VitaInfo",
                         "students": students,
-                        "hero": hero,
+                        "hero": get_hero_image("vita"),
                     },
                 )
             else:
@@ -156,7 +149,7 @@ def Info(request, username=None):
                         "pagename": user.get_full_name(),
                         "user": user,
                         "student": student,
-                        "hero": hero,
+                        "hero": get_hero_image("vita"),
                     },
                 )
         elif request.method == "POST":
@@ -195,7 +188,7 @@ def ApplicationView(request, username=None):
                     "user": user,
                     "usercourses": usercourses,
                     "application": app,
-                    "hero": hero,
+                    "hero": get_hero_image("vita"),
                 },
             )
         elif request.method == "POST":
@@ -254,7 +247,7 @@ def ApplicationView(request, username=None):
                     {
                         "pagename": "Applications",
                         "applications": apps,
-                        "hero": hero,
+                        "hero": get_hero_image("vita"),
                     },
                 )
             else:
@@ -277,7 +270,7 @@ def ApplicationView(request, username=None):
                             "usercourses": courses,
                             "buttons": buttons,
                             "form": form,
-                            "hero": hero,
+                            "hero": get_hero_image("vita"),
                         },
                     )
                 except Application.DoesNotExist:
@@ -336,7 +329,7 @@ def OffCampus(request, username=None):
                     "exp": exp,
                     "expform": expform,
                     "user": user,
-                    "hero": hero,
+                    "hero": get_hero_image("vita"),
                 },
             )
         elif request.method == "POST":
@@ -364,7 +357,7 @@ def OffCampus(request, username=None):
                         "pagename": "Off Campus Experience",
                         "target": "VitaOffCampus",
                         "students": students,
-                        "hero": hero,
+                        "hero": get_hero_image("vita"),
                     },
                 )
             else:
@@ -386,7 +379,7 @@ def OffCampus(request, username=None):
                         "expType": expType,
                         "user": user,
                         "student": student,
-                        "hero": hero,
+                        "hero": get_hero_image("vita"),
                     },
                 )
 
