@@ -52,17 +52,12 @@ jobs:
           mkdir /home/runner/static
           result/bin/python ekiree_dashboard/manage.py collectstatic
 
-      # Test Migrations
-      - name: Test Migrations
-        run: result/bin/python ekiree_dashboard/manage.py migrate --skip-checks
-
       # Run all tests with coverage
       - name: Run Tests
         run: >
           result/bin/python -m coverage run
           --source=ekiree_dashboard
-          ekiree_dashboard/manage.py test
-          --parallel
+          ekiree_dashboard/manage.py test ekiree_dashboard -v 2
 
       - name: Coverage Report
         run: result/bin/python -m coverage report

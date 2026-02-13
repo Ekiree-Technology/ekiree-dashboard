@@ -17,15 +17,10 @@ from ed.tools import (
     supporting_courses,
 )
 from poetfolio.tools import all_students, is_council, is_student, is_WSPstaff
-from siteconfig.models import HeroImage
+from siteconfig.models import get_hero_image
 from vita.models import Student
 
 logger = logging.getLogger(__name__)
-
-try:
-    hero = HeroImage.objects.get(app="ed")
-except HeroImage.DoesNotExist:
-    hero = None
 
 
 def EDIndex(request):
@@ -50,7 +45,7 @@ def EDIndex(request):
             "staff": staff,
             "student": student,
             "name": request.user.username,
-            "hero": hero,
+            "hero": get_hero_image("ed"),
         },
     )
 
@@ -127,7 +122,7 @@ def ED(request, username=None):
                     "edgoals": edgoals,
                     "narrative": narrative,
                     "pagename": "Educational Design",
-                    "hero": hero,
+                    "hero": get_hero_image("ed"),
                 },
             )
         elif is_WSPstaff(user) or is_council(user):
@@ -140,7 +135,7 @@ def ED(request, username=None):
                         "pagename": "Select Student",
                         "students": studentlist,
                         "target": "ED",
-                        "hero": hero,
+                        "hero": get_hero_image("ed"),
                     },
                 )
             else:
@@ -178,7 +173,7 @@ def ED(request, username=None):
                         "edgoals": edgoals,
                         "narrative": narrative,
                         "pagename": pagename,
-                        "hero": hero,
+                        "hero": get_hero_image("ed"),
                     },
                 )
         else:

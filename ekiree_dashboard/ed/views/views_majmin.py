@@ -7,14 +7,9 @@ from django.shortcuts import render
 from django.urls import reverse
 from ed.tools import Major, Minor, all_courses, major_courses, minor_courses
 from poetfolio.tools import is_student
-from siteconfig.models import HeroImage
+from siteconfig.models import get_hero_image
 
 logger = logging.getLogger(__name__)
-
-try:
-    hero = HeroImage.objects.get(app="ed")
-except HeroImage.DoesNotExist:
-    hero = None
 
 
 @login_required
@@ -38,7 +33,7 @@ def MajorMinor(request):
                     "minor1": minor1,
                     "minor2": minor2,
                     "usercourses": studentcourses,
-                    "hero": hero,
+                    "hero": get_hero_image("ed"),
                 },
             )
         else:
@@ -151,7 +146,7 @@ def MajorMinor(request):
                     "minor1": minor1,
                     "minor2": minor2,
                     "usercourses": studentcourses,
-                    "hero": hero,
+                    "hero": get_hero_image("ed"),
                 },
             )
 

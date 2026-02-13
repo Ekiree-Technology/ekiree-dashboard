@@ -3,14 +3,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from ed.tools import all_courses, major_courses, minor_courses, WSPcourses, courses_by_division
 from poetfolio.tools import is_student, is_WSPstaff, is_council, all_students
-from siteconfig.models import HeroImage
-
-try:
-    hero = HeroImage.objects.get(app="reports")
-# except HeroImage.DoesNotExist:
-#    hero = HeroImage.objects.get(app='default')
-except:
-    hero = None
+from siteconfig.models import get_hero_image
 
 
 def ReportsIndex(request, username=None):
@@ -39,7 +32,7 @@ def ReportsIndex(request, username=None):
                     "major2": major2,
                     "minor1": minor1,
                     "minor2": minor2,
-                    "hero": hero,
+                    "hero": get_hero_image("reports"),
                 },
             )
         elif is_WSPstaff(request.user) or is_council(request.user):
@@ -52,7 +45,7 @@ def ReportsIndex(request, username=None):
                         "pagename": "Reports",
                         "target": "ReportsIndex",
                         "students": students,
-                        "hero": hero,
+                        "hero": get_hero_image("reports"),
                     },
                 )
 
@@ -79,7 +72,7 @@ def ReportsIndex(request, username=None):
                         "major2": major2,
                         "minor1": minor1,
                         "minor2": minor2,
-                        "hero": hero,
+                        "hero": get_hero_image("reports"),
                     },
                 )
         else:

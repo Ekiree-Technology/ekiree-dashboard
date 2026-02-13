@@ -4,6 +4,19 @@ from ed.models import Course
 # Create your models here.
 
 
+def get_hero_image(app):
+    """Fetch the HeroImage for the given app name, or None if it doesn't exist.
+
+    This must be called inside view functions (not at module level) to avoid
+    database queries at import time, which breaks manage.py commands that run
+    before migrations.
+    """
+    try:
+        return HeroImage.objects.get(app=app)
+    except HeroImage.DoesNotExist:
+        return None
+
+
 class HeroImage(models.Model):
     DEFAULT = "default"
     ED = "ed"

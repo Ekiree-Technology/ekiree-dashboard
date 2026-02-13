@@ -6,14 +6,9 @@ from django.shortcuts import render
 from django.urls import reverse
 from ed.forms import EducationalGoalForm
 from ed.tools import EducationalGoal
-from siteconfig.models import HeroImage
+from siteconfig.models import get_hero_image
 
 logger = logging.getLogger(__name__)
-
-try:
-    hero = HeroImage.objects.get(app="ed")
-except HeroImage.DoesNotExist:
-    hero = None
 
 
 @login_required
@@ -45,7 +40,7 @@ def Goals(request):
             {
                 "edgoals": edgoals,
                 "pagename": "Your Educational Goals",
-                "hero": hero,
+                "hero": get_hero_image("ed"),
             },
         )
     else:
@@ -67,7 +62,7 @@ def AddEducationalGoal(request):
                 "edgoals": edgoals,
                 "pagename": "Your Educational Goals",
                 "form": form,
-                "hero": hero,
+                "hero": get_hero_image("ed"),
             },
         )
 
@@ -108,7 +103,7 @@ def EditEDGoal(request, goal_id=None):
                 "edgoal": edgoal,
                 "form": form,
                 "pagename": "Edit Goal",
-                "hero": hero,
+                "hero": get_hero_image("ed"),
             },
         )
     elif (request.method == "POST") and (user == edgoal.student):

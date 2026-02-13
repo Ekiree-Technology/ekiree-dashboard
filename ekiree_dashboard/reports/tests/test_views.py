@@ -38,7 +38,7 @@ class ReportsIndexViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'reports/studentpickerform.html')
 
-    def test_unauthenticated_user_redirects(self):
+    def test_user_without_group_redirects(self):
         self.client.force_login(
             User.objects.create_user(username='nobody', password='testpass'))
         response = self.client.get(reverse('ReportsIndex'), follow=True)
