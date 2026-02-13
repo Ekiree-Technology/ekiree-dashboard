@@ -4,9 +4,9 @@
 # Scripts
 build_and_push.sh
 
-#Results of Nix Builds
-./result/
-.result/*
+# Nix build output symlinks
+result
+result-*
 
 # direnv outpus
 .direnv/
