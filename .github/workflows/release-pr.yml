@@ -1,0 +1,103 @@
+---
+name: Release PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: "Version bump type"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - epoch
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-release-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Calculate next version
+        id: version
+        run: |
+          CURRENT=$(grep -oP '^version = "\K[^"]+' pyproject.toml)
+          echo "Current version: $CURRENT"
+
+          FIRST=$(echo "$CURRENT" | cut -d. -f1)
+          MINOR=$(echo "$CURRENT" | cut -d. -f2)
+          PATCH=$(echo "$CURRENT" | cut -d. -f3)
+
+          EPOCH=$((FIRST / 1000))
+          MAJOR=$((FIRST % 1000))
+
+          case "${{ inputs.bump_type }}" in
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              if [ "$MAJOR" -ge 1000 ]; then
+                echo "::error::MAJOR version overflow ($MAJOR >= 1000). Use an epoch bump instead."
+                exit 1
+              fi
+              ;;
+            epoch)
+              EPOCH=$((EPOCH + 1))
+              MAJOR=0
+              MINOR=0
+              PATCH=0
+              ;;
+          esac
+
+          NEW_FIRST=$((EPOCH * 1000 + MAJOR))
+          VERSION="${NEW_FIRST}.${MINOR}.${PATCH}"
+
+          echo "Next version: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+
+      - name: Update pyproject.toml
+        run: |
+          sed -i -E "s/^version = \".*\"/version = \"${{ steps.version.outputs.version }}\"/" pyproject.toml
+
+      - name: Create branch and PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          CURRENT: ${{ steps.version.outputs.current }}
+          BUMP_TYPE: ${{ inputs.bump_type }}
+        run: |
+          BRANCH="release/${VERSION}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "$BRANCH"
+          git add pyproject.toml
+          git commit -m "Bump version to ${VERSION}"
+          git push --set-upstream origin "$BRANCH"
+
+          BODY="Automated version bump from \`${CURRENT}\` to \`${VERSION}\` (${BUMP_TYPE}).
+
+When merged, the release pipeline will build the container, push to GHCR, and create a GitHub Release."
+
+          gh pr create \
+            --title "Release v${VERSION}" \
+            --body "$BODY" \
+            --base master \
+            --head "$BRANCH"
