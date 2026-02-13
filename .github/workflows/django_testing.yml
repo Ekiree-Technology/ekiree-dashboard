@@ -62,6 +62,9 @@ jobs:
       - name: Coverage Report
         run: result/bin/python -m coverage report
 
-      # Type checking
+      # Type checking (uses dev env for django-stubs support)
+      - name: Build Dev Environment
+        run: nix build .#dev -o result-dev
+
       - name: Type Check
-        run: npx pyright --pythonpath result/bin/python ekiree_dashboard/
+        run: npx pyright --pythonpath result-dev/bin/python ekiree_dashboard/
