@@ -32,7 +32,7 @@
     poetryDev = mkPoetryEnv {
       projectDir = ./.;
       preferWheels = true;
-      extraPackages = ps: [ps.pip ps.django-stubs];
+      extraPackages = ps: [ps.pip];
       overrides = overrides.withDefaults (final: prev: {
         reportlab = prev.reportlab.override {
           preferWheel = false;

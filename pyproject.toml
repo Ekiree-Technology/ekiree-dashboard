@@ -37,11 +37,16 @@ coverage = "^7.6"
 # mysql-connector-python = "^9.2.0"
 # django-mysql = "^4.16.0"
 
+[tool.poetry.group.dev.dependencies]
+django-stubs = "^5.2.0"
+
 [tool.pyright]
 include = ["./"]
+exclude = ["**/migrations/"]
 
 pythonVersion = "3.11"
 pythonPlatform = "Linux"
+typeCheckingMode = "basic"
 
 [tool.mypy]
 plugins = ["mypy_django_plugin.main"]
