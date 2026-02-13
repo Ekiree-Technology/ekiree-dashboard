@@ -45,6 +45,13 @@ pythonVersion = "3.11"
 pythonPlatform = "Linux"
 typeCheckingMode = "basic"
 
+# Disabled until django-stubs is available in CI (see TODO).
+# Without django-stubs, pyright doesn't understand Django's ORM metaclass
+# magic (.objects, field descriptors, ForeignKey dereferencing, etc.).
+reportAttributeAccessIssue = false
+reportArgumentType = false
+reportOperatorIssue = false
+
 [tool.mypy]
 plugins = ["mypy_django_plugin.main"]
 
