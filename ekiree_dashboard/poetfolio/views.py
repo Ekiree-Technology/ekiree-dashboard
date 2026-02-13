@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 def Index(request):
     menu = Menu_item.objects.order_by("order")
-    home = Home_page.objects.order_by("-publish_date")[0]
+    home = Home_page.objects.order_by("-publish_date").first()
 
     user = request.user
     if is_student(request.user):
