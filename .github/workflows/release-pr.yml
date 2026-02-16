@@ -1,4 +1,3 @@
----
 name: Release PR
 
 on:
@@ -92,9 +91,7 @@ jobs:
           git commit -m "Bump version to ${VERSION}"
           git push --set-upstream origin "$BRANCH"
 
-          BODY="Automated version bump from \`${CURRENT}\` to \`${VERSION}\` (${BUMP_TYPE}).
-
-When merged, the release pipeline will build the container, push to GHCR, and create a GitHub Release."
+          BODY="Automated version bump from \`${CURRENT}\` to \`${VERSION}\` (${BUMP_TYPE}). When merged, the release pipeline will build the container, push to GHCR, and create a GitHub Release."
 
           gh pr create \
             --title "Release v${VERSION}" \
