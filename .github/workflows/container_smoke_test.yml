@@ -5,9 +5,13 @@ on:
   pull_request:
     branches: ["master"]
 
+permissions: {}
+
 jobs:
   container-smoke-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     services:
       mariadb:
