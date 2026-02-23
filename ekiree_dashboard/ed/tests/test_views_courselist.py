@@ -1,12 +1,10 @@
 from django.test import TestCase
-from django.core.exceptions import ValidationError
-from django.db.utils import IntegrityError
 from django.db.models import Max
 from django.contrib.auth.models import User, Group
 from django.urls import reverse
-from ed.views import *
-from ed.models import *
-from ed.tools import *
+from ed.models import Course, EDCourse, Subject, Term
+from ed.tools import all_courses
+from poetfolio.tools import all_students, is_WSPstaff, is_council, is_student
 from siteconfig.models import HeroImage
 from vita.models import Home_page
 from datetime import date
@@ -76,14 +74,14 @@ class CourseListTest(TestCase):
 
 
     def test_login_required(self):
-        response = self.client.get(reverse(CourseList), follow=True)
-        redirect_path = reverse('login') + '?next=' + reverse(CourseList)
+        response = self.client.get(reverse("CourseList"), follow=True)
+        redirect_path = reverse('login') + '?next=' + reverse("CourseList")
         self.assertEqual(response.redirect_chain[0][0], redirect_path)
 
     def test_student_post_request(self):
         test_student = User.objects.get(username='test_student')
         logged_in = self.client.force_login(test_student)
-        response = self.client.post(reverse(CourseList))
+        response = self.client.post(reverse("CourseList"))
         redirect_path = reverse('Index')
         # assertRedirects doesn't work right after POST?
         self.assertEqual(response.status_code, 302)
@@ -94,7 +92,7 @@ class CourseListTest(TestCase):
         logged_in = self.client.force_login(test_student)
 
 
-        response = self.client.get(reverse(CourseList), follow=True)
+        response = self.client.get(reverse("CourseList"), follow=True)
 
         self.assertIn('user', response.context)
         self.assertEqual(response.context['user'], test_student)
@@ -127,14 +125,14 @@ class CourseListTest(TestCase):
         logged_in = self.client.force_login(test_council)
 
         response = self.client.post(
-            reverse(CourseList),
+            reverse("CourseList"),
             {'student': test_student.id}
         )
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
             response.url,
-            reverse(CourseList)+test_student.username
+            reverse("CourseList", args=[test_student.username]),
         )
 
     def test_council_post_request_student_does_not_exist(self):
@@ -145,17 +143,17 @@ class CourseListTest(TestCase):
         max_id = User.objects.all().aggregate(Max('id'))['id__max']
 
         response = self.client.post(
-            reverse(CourseList),
+            reverse("CourseList"),
             {'student': max_id+1},
             follow=True
         )
         self.assertEqual(response.redirect_chain[0][1], 302)
-        self.assertEqual(response.redirect_chain[0][0], reverse(CourseList))
+        self.assertEqual(response.redirect_chain[0][0], reverse("CourseList"))
 
     def test_council_get_request_picker(self):
         test_council = User.objects.get(username='test_council')
         logged_in = self.client.force_login(test_council)
-        response = self.client.get(reverse(CourseList), follow=True)
+        response = self.client.get(reverse("CourseList"), follow=True)
 
         self.assertIn('user', response.context)
         self.assertEqual(response.context['user'], test_council)
@@ -187,14 +185,14 @@ class CourseListTest(TestCase):
         test_student = User.objects.get(username='test_student')
         logged_in = self.client.force_login(test_wspstaff)
         response = self.client.post(
-            reverse(CourseList),
+            reverse("CourseList"),
             {'student': test_student.id}
         )
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
             response.url,
-            reverse(CourseList) + test_student.username,
+            reverse("CourseList", args=[test_student.username]),
         )
 
     def test_wspstaff_post_request_student_does_not_exist(self):
@@ -205,17 +203,17 @@ class CourseListTest(TestCase):
         max_id = User.objects.all().aggregate(Max('id'))['id__max']
 
         response = self.client.post(
-            reverse(CourseList),
+            reverse("CourseList"),
             {'student': max_id+1},
             follow=True
         )
         self.assertEqual(response.redirect_chain[0][1], 302)
-        self.assertEqual(response.redirect_chain[0][0], reverse(CourseList))
+        self.assertEqual(response.redirect_chain[0][0], reverse("CourseList"))
 
     def test_wspstaff_get_request_picker(self):
         test_wspstaff = User.objects.get(username='test_wspstaff')
         logged_in = self.client.force_login(test_wspstaff)
-        response = self.client.get(reverse(CourseList))
+        response = self.client.get(reverse("CourseList"))
 
         self.assertIn('user', response.context)
         self.assertEqual(response.context['user'], test_wspstaff)
@@ -316,8 +314,8 @@ class EditEDCourseTest(TestCase):
         home_page.save()
 
     def test_anonymous_user_redirected_to_login(self):
-        response = self.client.get(reverse(EditEDCourse), follow=True)
-        redirect_path = reverse('login') + '?next=' + reverse(EditEDCourse)
+        response = self.client.get(reverse("editEDCourse"), follow=True)
+        redirect_path = reverse('login') + '?next=' + reverse("editEDCourse")
         self.assertEqual(response.redirect_chain[0][0], redirect_path)
 
         response = self.client.post(
@@ -338,7 +336,7 @@ class EditEDCourseTest(TestCase):
         self.assertEqual(response.redirect_chain[0][0], redirect_path)
 
         response = self.client.post(
-            reverse(EditEDCourse),
+            reverse("editEDCourse"),
             {'edcourse_id': 0},
             follow=True
         )
@@ -356,7 +354,7 @@ class EditEDCourseTest(TestCase):
         self.assertEqual(response.redirect_chain[0][0], redirect_path)
 
         response = self.client.post(
-            reverse(EditEDCourse),
+            reverse("editEDCourse"),
             {'edcourse_id': 0},
         )
 
@@ -398,7 +396,7 @@ class EditEDCourseTest(TestCase):
         }
         
         response = self.client.post(
-            reverse('editEDCourse') + str(edcourse.id),
+            reverse("editEDCourse", args=[edcourse.id]),
             payload
         )
 
@@ -450,7 +448,7 @@ class EditEDCourseTest(TestCase):
             'notes': edcourse.notes or '',
         }
         response = self.client.post(
-            reverse('editEDCourse') + str(edcourse.id),
+            reverse("editEDCourse", args=[edcourse.id]),
             payload,
             follow=True
         )

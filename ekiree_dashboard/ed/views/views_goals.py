@@ -112,7 +112,7 @@ def EditEDGoal(request, goal_id=None):
             instance=edgoal,
             user=user,
         )
-        if form.is_valid:
+        if form.is_valid():
             form.save()
             return HttpResponseRedirect(reverse("AllGoals"))
 
