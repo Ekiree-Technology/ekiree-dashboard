@@ -42,7 +42,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Start container
+      - name: Start container (default mode)
         run: |
           docker run -d --name dashboard \
             -p 8000:8000 \
@@ -100,6 +100,68 @@ jobs:
             echo "Static file not served (expected 200, got $STATUS)."
             exit 1
           fi
+
+      - name: Verify migrate-only mode exits successfully
+        run: |
+          docker run --rm --name dashboard-migrate-only \
+            --add-host=host.docker.internal:host-gateway \
+            -e DOCKER_SECRETS=False \
+            -e POETFOLIO_SECRET_KEY=ci-test-key-not-for-production \
+            -e POETFOLIO_DB_NAME=poetfolio_dev \
+            -e POETFOLIO_DB_USER=root \
+            -e POETFOLIO_DB_PASSWORD=devdevdev \
+            -e POETFOLIO_DB_HOST=host.docker.internal \
+            -e POETFOLIO_STATIC=/app/static \
+            -e ALLOWED_HOSTS='*' \
+            ekiree-dashboard:test \
+            /app/bin/python /app/entrypoint.prod.py --migrate-only
+
+      - name: Verify skip-migrate mode serves after migration check
+        run: |
+          docker run -d --name dashboard-skip \
+            -p 8002:8000 \
+            --add-host=host.docker.internal:host-gateway \
+            -e DOCKER_SECRETS=False \
+            -e POETFOLIO_SECRET_KEY=ci-test-key-not-for-production \
+            -e POETFOLIO_DB_NAME=poetfolio_dev \
+            -e POETFOLIO_DB_USER=root \
+            -e POETFOLIO_DB_PASSWORD=devdevdev \
+            -e POETFOLIO_DB_HOST=host.docker.internal \
+            -e POETFOLIO_STATIC=/app/static \
+            -e ALLOWED_HOSTS='*' \
+            ekiree-dashboard:test \
+            /app/bin/python /app/entrypoint.prod.py --skip-migrate
+
+          for i in $(seq 1 6); do
+            STATUS=$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 5 --max-time 10 http://127.0.0.1:8002/) || true
+            echo "Attempt $i/6 - skip-migrate HTTP status: $STATUS"
+            if [ "$STATUS" -ge 200 ] 2>/dev/null && [ "$STATUS" -lt 600 ] 2>/dev/null; then
+              echo "Skip-migrate mode is serving (HTTP $STATUS)."
+              break
+            fi
+            sleep 5
+          done
+
+          FINAL_STATUS=$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 5 --max-time 10 http://127.0.0.1:8002/) || true
+          if [ "$FINAL_STATUS" -lt 200 ] 2>/dev/null || [ "$FINAL_STATUS" -ge 600 ] 2>/dev/null; then
+            echo "Skip-migrate container did not become ready (HTTP $FINAL_STATUS)."
+            docker logs --tail 100 dashboard-skip
+            exit 1
+          fi
+
+          docker stop dashboard-skip
+          SKIP_EXIT_CODE=$(docker inspect dashboard-skip --format='{{.State.ExitCode}}')
+          echo "Skip-migrate container exit code: $SKIP_EXIT_CODE"
+          case "$SKIP_EXIT_CODE" in
+            0|137|143)
+              echo "Skip-migrate container exit code accepted."
+              ;;
+            *)
+              echo "Skip-migrate container exited with unexpected code $SKIP_EXIT_CODE."
+              docker logs --tail 50 dashboard-skip
+              exit 1
+              ;;
+          esac
 
       - name: Verify graceful shutdown
         run: |
