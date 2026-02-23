@@ -70,7 +70,10 @@ def Narrative(request):
 
 @login_required
 def EditNarrative(request):
-    student = Student.objects.get(user=request.user)
+    try:
+        student = Student.objects.get(user=request.user)
+    except Student.DoesNotExist:
+        return redirect(reverse("VitaIndex"))
     form = StudentNarrativeForm()
     form.fields["narrative"].initial = student.narrative
     return render(
@@ -361,13 +364,14 @@ def OffCampus(request, username=None):
                     },
                 )
             else:
-                user = User.objects.get(username=username)
-                student = Student.objects.get(user=user)
-
-                exp = OffCampusExperience.objects.get(student=student)
+                try:
+                    user = User.objects.get(username=username)
+                    student = Student.objects.get(user=user)
+                    exp = OffCampusExperience.objects.get(student=student)
+                except (User.DoesNotExist, Student.DoesNotExist, OffCampusExperience.DoesNotExist):
+                    return redirect(reverse("VitaIndex"))
                 notesForm = OffCampusCouncilNotesForm(instance=exp)
                 expType = exp.get_experience_type_display()
-                print("The user  is: ", user)
 
                 return render(
                     request,
@@ -397,7 +401,10 @@ def OffCampus(request, username=None):
             # post is coming from student picker
             else:
                 user_id = request.POST.get("student")
-                user = User.objects.get(id=user_id)
+                try:
+                    user = User.objects.get(id=user_id)
+                except User.DoesNotExist:
+                    return redirect(reverse("VitaIndex"))
 
             return redirect(reverse("VitaOffCampus") + user.username)
 

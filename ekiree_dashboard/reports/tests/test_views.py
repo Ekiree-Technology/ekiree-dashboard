@@ -41,5 +41,5 @@ class ReportsIndexViewTest(TestCase):
     def test_user_without_group_redirects(self):
         self.client.force_login(
             User.objects.create_user(username='nobody', password='testpass'))
-        response = self.client.get(reverse('ReportsIndex'), follow=True)
-        self.assertEqual(response.status_code, 200)
+        response = self.client.get(reverse('ReportsIndex'))
+        self.assertRedirects(response, reverse('Index'), fetch_redirect_response=False)

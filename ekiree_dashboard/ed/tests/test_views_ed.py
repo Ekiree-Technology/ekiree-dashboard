@@ -1,14 +1,18 @@
 from django.test import TestCase
-from django.core.exceptions import ValidationError
-from django.db.utils import IntegrityError
-from django.db.models import Max
 from django.contrib.auth.models import User, Group
 from django.urls import reverse
-from ed.views import *
-from ed.models import *
-from ed.tools import *
+from ed.models import Course, Department, Division, EducationalGoal, Major, Minor, Subject
+from ed.tools import (
+    WSPcourses,
+    all_courses,
+    courses_by_division,
+    major_courses,
+    minor_courses,
+    supporting_courses,
+)
 from siteconfig.models import HeroImage
 from django.http import JsonResponse
+from vita.models import Student
 
 # TODO: class EDTest(TestCase):
 # TODO: class ApproveEDTest(TestCase):
@@ -19,7 +23,7 @@ class EDIndexViewTest(TestCase):
         pass
 
     def test_uses_landingpage_template(self):
-        response = self.client.get(reverse(EDIndex), follow=True)
+        response = self.client.get(reverse("EDIndex"), follow=True)
 
         self.assertTemplateUsed(response, 'ed/landingpage.html')
 
@@ -63,7 +67,7 @@ class APIViewTest(TestCase):
         student = User.objects.get(username="a student")
         logged_in = self.client.force_login(student)
 
-        url = reverse('API') + 'ENGL/'
+        url = reverse("API", kwargs={"subj": "ENGL"})
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
 
@@ -77,7 +81,7 @@ class APIViewTest(TestCase):
         student = User.objects.get(username="a student")
         logged_in = self.client.force_login(student)
 
-        url = reverse('API') + 'ZXCV/'
+        url = reverse("API", kwargs={"subj": "ZXCV"})
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
 
@@ -91,7 +95,7 @@ class APIViewTest(TestCase):
         student = User.objects.get(username="a student")
         logged_in = self.client.force_login(student)
 
-        url = reverse('API') + 'ENGL/203/'
+        url = reverse("API", kwargs={"subj": "ENGL", "num": "203"})
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
 
@@ -105,7 +109,7 @@ class APIViewTest(TestCase):
         student = User.objects.get(username="a student")
         logged_in = self.client.force_login(student)
 
-        url = reverse('API') + 'ENGL/999/'
+        url = reverse("API", kwargs={"subj": "ENGL", "num": "999"})
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
 

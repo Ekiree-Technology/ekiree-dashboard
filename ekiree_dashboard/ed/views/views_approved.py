@@ -156,17 +156,26 @@ def ReplaceAppCourse(request, appcourse_id=None):
     return redirect(reverse("Index"))
 
 
+@login_required
 def ApproveAppCourseReplacement(request):
     user = request.user
-    if is_student(user):
+    if not (is_WSPstaff(user) or is_council(user)):
         return redirect(reverse("Index"))
 
     if request.method == "POST":
         replace = request.POST.get("replace")
-        course_id = int(request.POST.get("course_id"))
+        try:
+            course_id = int(request.POST.get("course_id"))
+        except (TypeError, ValueError):
+            return redirect(reverse("ApprovedCourses"))
+
+        referer = request.META.get("HTTP_REFERER", reverse("ApprovedCourses"))
 
         if replace:
-            oldcourse = ApprovedCourse.objects.get(id=course_id)
+            try:
+                oldcourse = ApprovedCourse.objects.get(id=course_id)
+            except ApprovedCourse.DoesNotExist:
+                return redirect(reverse("ApprovedCourses"))
 
             try:
                 newcourse_id = request.POST.get("newcourse_id")
@@ -188,16 +197,16 @@ def ApproveAppCourseReplacement(request):
                     notes=newcourse.notes,
                 )
                 approveddcourse.save()
-            except KeyError:
-                pass
-            except EDCourse.DoesNotExist:
-                pass
-            finally:
                 oldcourse.delete()
+            except (KeyError, EDCourse.DoesNotExist):
+                pass
 
-            return redirect(request.META["HTTP_REFERER"])
+            return redirect(referer)
         else:
-            newcourse = EDCourse.objects.get(id=course_id)
+            try:
+                newcourse = EDCourse.objects.get(id=course_id)
+            except EDCourse.DoesNotExist:
+                return redirect(reverse("ApprovedCourses"))
             approveddcourse = ApprovedCourse(
                 student=newcourse.student,
                 course=newcourse.course,
@@ -214,3 +223,7 @@ def ApproveAppCourseReplacement(request):
                 notes=newcourse.notes,
             )
             approveddcourse.save()
+
+            return redirect(referer)
+
+    return redirect(reverse("Index"))
