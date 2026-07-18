@@ -29,6 +29,8 @@ jobs:
 
       - name: Calculate next version
         id: version
+        env:
+          BUMP_TYPE: ${{ inputs.bump_type }}
         run: |
           CURRENT=$(grep -oP '^version = "\K[^"]+' pyproject.toml)
           echo "Current version: $CURRENT"
@@ -40,7 +42,7 @@ jobs:
           EPOCH=$((FIRST / 1000))
           MAJOR=$((FIRST % 1000))
 
-          case "${{ inputs.bump_type }}" in
+          case "$BUMP_TYPE" in
             patch)
               PATCH=$((PATCH + 1))
               ;;
