@@ -44,7 +44,7 @@ jobs:
         uses: astral-sh/setup-uv@eac588ad8def6316056a12d4907a9d4d84ff7a3b # v7
 
       - name: Run zizmor
-        run: uvx zizmor --format=github --min-severity=medium .
+        run: uvx zizmor@1.9.0 --format=github --min-severity=medium .
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -73,7 +73,7 @@ jobs:
 
   test:
     name: Django Tests and Coverage
-    needs: [workflow-security, flake]
+    needs: workflow-security
     runs-on: ubuntu-latest
     timeout-minutes: 40
     permissions:
@@ -161,7 +161,7 @@ jobs:
 
   typecheck:
     name: Pyright
-    needs: [workflow-security, flake]
+    needs: workflow-security
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -190,7 +190,7 @@ jobs:
       - name: Run Pyright
         run: |
           set -euo pipefail
-          npx --yes pyright --pythonpath result-dev/bin/python ekiree_dashboard/ --outputjson > pyright-report.json
+          npx --yes pyright@1.1.400 --pythonpath result-dev/bin/python ekiree_dashboard/ --outputjson > pyright-report.json
 
       - name: Upload pyright report
         if: always()
