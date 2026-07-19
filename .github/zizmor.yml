@@ -4,5 +4,4 @@ rules:
       # magic-nix-cache-action follows GitHub cache isolation semantics;
       # PR caches cannot pollute the default branch cache.
       - django_testing.yml:69
-      - django_testing.yml:115
-      - django_testing.yml:185
+      - django_testing.yml:122
