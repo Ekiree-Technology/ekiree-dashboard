@@ -55,6 +55,7 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
+      id-token: write
 
     steps:
       - name: Checkout repository
@@ -67,17 +68,20 @@ jobs:
 
       - name: Enable Nix Cache
         uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b # v8
+        with:
+          use-flakehub: false
 
       - name: Flake check
         run: nix flake check
 
   test:
-    name: Django Tests and Coverage
+    name: Django Tests, Coverage, and Typecheck
     needs: workflow-security
     runs-on: ubuntu-latest
     timeout-minutes: 40
     permissions:
       contents: read
+      id-token: write
 
     env:
       POETFOLIO_DB_NAME: poetfolio_dev
@@ -108,11 +112,18 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up Node.js
+        uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4.0.4
+        with:
+          node-version: "20"
+
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@90bb610b90bf290cad97484ba341453bd1cbefea # v19
 
       - name: Enable Nix Cache
         uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b # v8
+        with:
+          use-flakehub: false
 
       - name: Build Dev Environment
         run: nix build .#dev -o result-dev
@@ -150,51 +161,17 @@ jobs:
           result-dev/bin/python -m coverage report --fail-under=80
           result-dev/bin/python -m coverage xml -o coverage.xml
 
-      - name: Upload coverage artifacts
-        if: always()
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
-        with:
-          name: coverage-report
-          path: |
-            coverage.xml
-            .coverage
-
-  typecheck:
-    name: Pyright
-    needs: workflow-security
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          persist-credentials: false
-
-      - name: Set up Node.js
-        uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4.0.4
-        with:
-          node-version: "20"
-
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@90bb610b90bf290cad97484ba341453bd1cbefea # v19
-
-      - name: Enable Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b # v8
-
-      - name: Build Dev Environment
-        run: nix build .#dev -o result-dev
-
       - name: Run Pyright
         run: |
           set -euo pipefail
           npx --yes pyright@1.1.400 --pythonpath result-dev/bin/python ekiree_dashboard/ --outputjson > pyright-report.json
 
-      - name: Upload pyright report
+      - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
-          name: pyright-report
-          path: pyright-report.json
+          name: test-reports
+          path: |
+            coverage.xml
+            .coverage
+            pyright-report.json
